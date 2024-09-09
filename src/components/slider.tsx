@@ -7,32 +7,32 @@ const slides = [
     icon: FaPalette,
     title: 'Curate Your Own Art Collections',
     description: 'Easily curate personalized art collections from various museums and galleries.',
-    imageUrlWebp: '/images/slider/slide-01.webp',
-    imageUrlJpg: '/images/slider/slide-01-min.jpg',
+    imageUrlWebp: '/images/slider/slide-1.webp',
+    imageUrlJpg: '/images/slider/slide-1.jpg',
     iconColor: '#ff6347', // Tomato for palette
   },
   {
     icon: FaShareAlt,
     title: 'Share Collections with Friends',
     description: 'Collaborate and share your collections with friends and other users in just one click.',
-    imageUrlWebp: '/images/slider/slide-01.webp',
-    imageUrlJpg: '/images/slider/slide-01-min.jpg',
+    imageUrlWebp: '/images/slider/slide-1.webp',
+    imageUrlJpg: '/images/slider/slide-1.jpg',
     iconColor: '#1e90ff', // DodgerBlue for sharing
   },
   {
     icon: FaUsers,
     title: 'Join a Community of Art Lovers',
     description: 'Connect with a vibrant community of art enthusiasts and discover new collections.',
-    imageUrlWebp: '/images/slider/slide-01.webp',
-    imageUrlJpg: '/images/slider/slide-01-min.jpg',
+    imageUrlWebp: '/images/slider/slide-1.webp',
+    imageUrlJpg: '/images/slider/slide-1.jpg',
     iconColor: '#32cd32', // LimeGreen for community
   },
   {
     icon: FaArchive,
     title: 'Access a Vast Art Archive',
     description: 'Explore a wide range of artworks from museums, universities, and private collections.',
-    imageUrlWebp: '/images/slider/slide-01.webp',
-    imageUrlJpg: '/images/slider/slide-01-min.jpg',
+    imageUrlWebp: '/images/slider/slide-1.webp',
+    imageUrlJpg: '/images/slider/slide-1.jpg',
     iconColor: '#ffa500', // Orange for archive
   },
 ];
