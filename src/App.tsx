@@ -1,17 +1,26 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
-import Header from './components/header.tsx'
-import Slider from './components/slider.tsx'
+import Header from './components/Header'
+import Footer from './components/Footer';
+import Home from './screens/Home';
+import NotFound from './screens/NotFound';
+import { Route, Routes } from 'react-router-dom'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
-      <Header/>
-      <Slider/>
+      <div className="flex flex-col min-h-screen">
+        <Header/>
+
+        <div className="flex-grow">
+          <Routes>
+            <Route path="/" element={<Home/>}/>
+            <Route path="/explore-collections" element={<Home/>}/>
+            <Route path="*" element={<NotFound/>}/>
+          </Routes>
+        </div>
+
+        <Footer/>
+      </div>
     </>
   )
 }
