@@ -167,7 +167,7 @@ const Hero: React.FC = () => {
             exit={{ opacity: 0, x: -100 }}
             transition={{ duration: 0.8, ease: 'easeInOut' }}
           >
-            <Icon className="text-8xl md:text-7xl mb-4 md:mb-0 md:mr-6 opacity-60 scale-125" style={{ color: iconColor }}/>
+            <Icon className="text-8xl md:text-7xl mb-4 md:mb-0 md:mr-6 scale-125" style={{ color: iconColor }}/>
             <div>
               <motion.h2
                 className="text-2xl md:text-3xl font-bold mb-2 font-custom-subtitle"

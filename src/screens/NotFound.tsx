@@ -3,7 +3,7 @@ import ActionButton from '../components/ActionButton.tsx'
 
 const NotFound = () => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-dark text-white">
       {/* New SVG Animation */}
       <motion.div
         className="mb-8"
