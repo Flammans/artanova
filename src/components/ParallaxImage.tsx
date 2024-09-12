@@ -17,7 +17,6 @@ const PICTURE_STYLES_BASE = {
   inset: 0,
   width: '100%',
   height: '100%',
-  transition: 'transform 0.3s ease-out',
 }
 
 const IMG_STYLES = {
