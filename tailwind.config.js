@@ -9,7 +9,7 @@ export default {
       // Custom colors
       colors: {
         primary: '#000000',  // Black
-        secondary: '#ffffff',  // White
+        secondary: '#EEEEEE',  // White
         accent: '#d4af37',  // Gold
         dark: '#242424' // Brown Dark
       },
