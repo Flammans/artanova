@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Hero from '../components/Hero.tsx'
+import SiteBelt from '../components/SiteBelt.tsx'
 
 const Home = () => {
   const exploreSectionRef = useRef<HTMLDivElement>(null);
@@ -15,6 +16,7 @@ const Home = () => {
   return (
     <div>
       <Hero/>
+      <SiteBelt/>
       <section id="explore-section" ref={exploreSectionRef} className="h-screen bg-dark text-white flex flex-col items-center justify-center">
         <h2 className="text-4xl font-bold mb-8">Explore Art Collections</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">

@@ -38,7 +38,7 @@ const Hero: React.FC = () => {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative w-full flex flex-col items-center justify-space bg-black text-white min-h-fit pb-40">
+      <section className="relative w-full flex flex-col items-center justify-space bg-black text-white min-h-screen pb-40">
         {/* Main Hero content */}
         <ParallaxImage
           imageUrlWebp="/images/slider/slide-1.webp"
