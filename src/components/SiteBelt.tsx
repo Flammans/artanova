@@ -11,6 +11,7 @@ const SiteBelt: React.FC<SiteBeltProps> = ({ className = '' }) => {
       style={{
         backgroundImage: 'url(/images/ui/site-belt.webp)',
         backgroundSize: '200px 200px',
+        backgroundPosition: 'center top',
       }}
       aria-hidden="true"
     ></div>

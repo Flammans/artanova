@@ -47,7 +47,6 @@ const Hero: React.FC = () => {
         />
 
         {/* Section Title */}
-
         <SectionTitle
           titleText="Welcome to Artanova"
           subtitleText="Discover and curate the finest art collections from all over the world."
