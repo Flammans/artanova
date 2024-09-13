@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import ScrollArrow from './ScrollArrow.tsx';
 import ActionButton from './ActionButton.tsx';
 import ParallaxImage from './ParallaxImage.tsx';

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, CSSProperties } from 'react'
 
 interface ParallaxImageProps {
   imageUrlWebp: string;
@@ -6,20 +6,20 @@ interface ParallaxImageProps {
   altText: string;
 }
 
-const CONTAINER_STYLES = {
+const CONTAINER_STYLES: CSSProperties = {
   width: '100%',
   height: '640px',
   minHeight: '320px',
 }
 
-const PICTURE_STYLES_BASE = {
+const PICTURE_STYLES_BASE: CSSProperties = {
   position: 'absolute',
   inset: 0,
   width: '100%',
   height: '100%',
 }
 
-const IMG_STYLES = {
+const IMG_STYLES: CSSProperties = {
   width: '100%',
   height: 'auto',
   minHeight: '100%',

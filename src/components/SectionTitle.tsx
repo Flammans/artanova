@@ -11,7 +11,7 @@ interface SectionTitleProps {
 // SectionTitle component
 const SectionTitle: React.FC<SectionTitleProps> = ({ titleText, subtitleText, titleTag: TitleTag }) => {
   // Define CSS classes for different title sizes based on the chosen tag
-  const titleClass = {
+  const titleClass: {[key: string]: string} = {
     h1: 'text-5xl md:text-6xl',
     h2: 'text-4xl md:text-5xl',
     h3: 'text-3xl md:text-4xl',
