@@ -28,7 +28,35 @@ export default {
       transform: ['hover', 'focus'],
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addBase }) {
+      addBase({
+        '::-webkit-scrollbar': {
+          width: '12px',
+        },
+        '::-webkit-scrollbar-track': {
+          background: '#242424',
+        },
+        '::-webkit-scrollbar-thumb': {
+          backgroundColor: '#d4af37',
+          borderRadius: '6px',
+          border: '2px solid #242424',
+        },
+        '*': {
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#d4af37 #242424',
+        },
+        '::selection': {
+          backgroundColor: '#d4af37',
+          color: '#000000',
+        },
+        '::-moz-selection': {
+          backgroundColor: '#d4af37',
+          color: '#000000',
+        },
+      });
+    },
+  ],
 };
 
 
