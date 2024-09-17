@@ -189,7 +189,8 @@ const Explore = () => {
 
   const breakpointColumnsObj = {
     default: 4,
-    1100: 3,
+    1640: 3,
+    1280: 2,
     992: 2,
     700: 1
   }
@@ -213,7 +214,7 @@ const Explore = () => {
       <motion.div className="mt-10 mb-5 w-full h-0.5 bg-accent"/>
 
       <div className="flex flex-col lg:flex-row w-full">
-        <div className="w-full lg:w-3/4">
+        <div className="w-full lg:w-3/4 pt-4">
           {/* Search Field */}
           <div className="relative w-full px-4 mb-4">
             <div className="relative flex items-center">
