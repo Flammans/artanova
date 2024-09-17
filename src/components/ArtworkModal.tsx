@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback, MouseEvent, WheelEvent } from 'react'
 import { X, CaretLeft, CaretRight } from 'phosphor-react'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { Swiper as SwiperType } from 'swiper/types'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
@@ -24,41 +23,51 @@ interface ArtworkModalProps {
 
 const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentIndex, onClose, onPrev, onNext }) => {
   const modalRef = useRef<HTMLDivElement>(null)
-  const [isImageLoading, setIsImageLoading] = useState<boolean>(true)
-  const [zoomLevel, setZoomLevel] = useState<number>(8)  // Default zoom level
-  const [isZoomActive, setIsZoomActive] = useState<boolean>(true)  // Zoom is active by default
+  const [isImageLoading, setIsImageLoading] = useState<boolean>(true)  // Loader state for image loading
+  const [zoomLevel, setZoomLevel] = useState<number>(8)
+  const [isZoomActive, setIsZoomActive] = useState<boolean>(true)
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [imageSize, setImageSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 })
   const [isLensVisible, setIsLensVisible] = useState<boolean>(false)
-  const zoomLensSize = 250  // Size of the zoom lens
+  const zoomLensSize = 250
+  const [animationKey, setAnimationKey] = useState<number>(0)
 
   // Disable scrolling on the main page when the modal is open
   useEffect(() => {
-    document.body.style.overflow = 'hidden'  // Prevent scroll when modal is open
+    document.body.style.overflow = 'hidden'
     return () => {
-      document.body.style.overflow = ''  // Re-enable scroll when modal is closed
+      document.body.style.overflow = ''
     }
   }, [])
 
-  // Handle closing the modal when the 'Escape' key is pressed or toggle zoom with 'Ctrl'
+  // Handle closing the modal when the 'Escape' key is pressed, toggle zoom with 'Ctrl', and navigate with 'ArrowLeft'/'ArrowRight'
   const handleKeyDown = useCallback(
     (e: KeyboardEvent): void => {
       if (e.key === 'Escape') {
         setTimeout(onClose, 300)  // Close modal after animation
       } else if (e.key === 'Control') {
         setIsZoomActive((prevState) => !prevState)  // Toggle zoom on/off
+      } else if (e.key === 'ArrowLeft') {
+        onPrev()  // Go to previous artwork
+      } else if (e.key === 'ArrowRight') {
+        onNext()  // Go to next artwork
       }
     },
-    [onClose]
+    [onClose, onPrev, onNext]
   )
 
-  // Add event listener for the 'Escape' key and 'Ctrl' key
+  // Add event listener for keyboard navigation and clean up on unmount
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
     return () => {
-      window.removeEventListener('keydown', handleKeyDown)  // Cleanup on unmount
+      window.removeEventListener('keydown', handleKeyDown)
     }
   }, [handleKeyDown])
+
+  // Trigger animation when the artwork changes
+  useEffect(() => {
+    setAnimationKey((prev) => prev + 1)  // Update key to trigger re-animation
+  }, [currentIndex])
 
   // Handle closing the modal when clicking outside of it
   const handleClickOutside = (e: MouseEvent<HTMLDivElement>): void => {
@@ -87,14 +96,14 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentI
 
   // Hide the zoom lens when the mouse leaves the image
   const handleMouseLeave = () => {
-    setIsLensVisible(false)  // Hide the zoom lens without resetting coordinates
+    setIsLensVisible(false)
   }
 
   // Handle image loading to capture its dimensions
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const { width, height } = e.currentTarget
     setImageSize({ width, height })
-    setIsImageLoading(false)  // Image is loaded, hide the loader
+    setIsImageLoading(false)  // Disable loader after image has loaded
   }
 
   return (
@@ -103,17 +112,18 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentI
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onClick={handleClickOutside}  // Close modal when clicking outside
+      onClick={handleClickOutside}
     >
       <FocusLock className="w-full flex items-center justify-center">
         <motion.div
           ref={modalRef}
-          className="bg-dark p-8 rounded-lg w-full max-w-5xl relative overflow-auto max-h-screen"
+          className="bg-dark p-8 rounded-lg w-full max-w-5xl relative overflow-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-          onWheel={handleWheel}  // Handle zoom with mouse wheel
+          onWheel={handleWheel}
+          style={{ maxHeight: 'calc(100vh - 50px)' }}
         >
           {/* Close Button */}
           <button
@@ -126,21 +136,18 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentI
             <X size={24} weight="bold"/>
           </button>
 
-          {/* Artwork Title */}
+          {/* Artwork Title with animation */}
           <motion.h2
+            key={animationKey}  // Changing key forces re-render and triggers animation
             className="text-3xl text-accent mb-4 font-serif"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: -20 }}  // Start position for animation
+            animate={{ opacity: 1, y: 0 }}  // End position for animation
             transition={{ duration: 0.5 }}
           >
             {artwork.title}
           </motion.h2>
-
-          <div
-            className="relative"
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}  // Hide zoom lens when mouse leaves
-          >
+          <div className="relative">
+            {/* Show loader if the image is still loading */}
             {isImageLoading && (
               <div className="absolute inset-0 flex justify-center items-center bg-dark">
                 <svg
@@ -172,11 +179,9 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentI
               slidesPerView={1}
               effect="fade"
               fadeEffect={{ crossFade: true }}
-              onSwiper={(swiper: SwiperType) => console.log('Swiper instance:', swiper)}
-              modules={[Navigation, Pagination, A11y, EffectFade]}  // Enable fade effect
+              modules={[Navigation, Pagination, A11y, EffectFade]}
               navigation
               pagination={{ clickable: true }}
-              a11y={{ prevSlideMessage: 'Previous slide', nextSlideMessage: 'Next slide' }}
             >
               {artwork.images.map((image: string, index: number) => (
                 <SwiperSlide key={index}>
@@ -188,17 +193,20 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentI
                       backgroundSize: `${zoomLevel * 100}%`,
                       height: 'auto',
                     }}
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
                   >
                     <img
                       src={image}
                       alt={`Artwork slide ${index}`}
                       className="w-full h-auto object-contain rounded-lg min-w-full"
-                      onLoad={handleImageLoad}  // Set image size and hide loader
+                      onLoad={handleImageLoad}  // Set image size and disable loader on load
                     />
+
                     {/* Zoom lens simulation */}
                     {isZoomActive && isLensVisible && (
                       <div
-                        className="absolute rounded-full border border-accent pointer-events-none"  // Prevent lens from blocking mouse events
+                        className="absolute rounded-full border border-accent pointer-events-none"
                         style={{
                           width: `${zoomLensSize}px`,
                           height: `${zoomLensSize}px`,
@@ -214,14 +222,21 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentI
                 </SwiperSlide>
               ))}
             </Swiper>
-
-            {/* Zoom hint */}
-            <div className="mt-4 text-sm text-white bg-black bg-opacity-50 px-2 py-1 rounded-lg">
-              You can toggle zoom by pressing <strong>Ctrl</strong>. Use the mouse wheel to zoom in and out.
-            </div>
           </div>
 
-          <motion.div className="mt-6 space-y-2">
+          {/* Zoom hint */}
+          <div className="mt-4 text-sm text-white bg-black bg-opacity-50 px-2 py-1 rounded-lg">
+            You can toggle zoom by pressing <strong>Ctrl</strong>. Use the mouse wheel to zoom in and out.
+          </div>
+
+          {/* Artwork Details with animation */}
+          <motion.div
+            key={`details-${animationKey}`}  // Different key for details to trigger re-animation
+            className="mt-6 space-y-2"
+            initial={{ opacity: 0 }}  // Fade in animation for details
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
             {artwork.type && <p><strong>Type:</strong> {artwork.type}</p>}
             {artwork.artist && <p><strong>Artist:</strong> {artwork.artist}</p>}
             {artwork.date && <p><strong>Date:</strong> {artwork.date}</p>}
@@ -231,14 +246,12 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentI
 
           {/* Buttons */}
           <motion.div className="flex space-x-4 mt-6">
-            {/* Details button using imported DetailsButton */}
             <DetailsButton
               onClick={() => window.open(artwork.url, '_blank')}
               text="Visit Source Website"
-              color="#3B82F6"  // Set color for button background (blue)
+              color="#3B82F6"
             />
 
-            {/* Add to Collection button */}
             <AddToCollectionButton
               onClick={() => alert(`Artwork "${artwork.title}" added to your collection!`)}
             />

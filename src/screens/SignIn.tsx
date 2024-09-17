@@ -1,48 +1,62 @@
-import React, { useState } from 'react';
-import { Eye, EyeSlash, EnvelopeSimple, Lock, ArrowRight } from 'phosphor-react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react'
+import { Eye, EyeSlash, EnvelopeSimple, Lock, ArrowRight } from 'phosphor-react'
+import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import Logo from '../components/Logo.tsx'
+import { api } from '../utils/api.ts'
+import { useAppDispatch } from '../stores/hooks.ts'
+import { setUser } from '../stores/userSlice.ts'
 
 // Email validation regex
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const SignIn: React.FC = () => {
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
-  const [isEmailValid, setIsEmailValid] = useState<boolean>(true);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const navigate = useNavigate();
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false)
+  const [isEmailValid, setIsEmailValid] = useState<boolean>(true)
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const navigate = useNavigate()
 
   // Toggle password visibility
-  const togglePasswordVisibility = (): void => setIsPasswordVisible(!isPasswordVisible);
+  const togglePasswordVisibility = (): void => setIsPasswordVisible(!isPasswordVisible)
+
+  const dispatch = useAppDispatch()
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsSubmitting(true)
 
     // Validate email
-    const emailIsValid = emailRegex.test(email);
-    setIsEmailValid(emailIsValid);
+    const emailIsValid = emailRegex.test(email)
+    setIsEmailValid(emailIsValid)
 
     if (emailIsValid && password) {
-      // Simulate sign-in process
-      setTimeout(() => {
-        setIsSubmitting(false);
-        // Redirect to dashboard or homepage after successful sign-in
-        navigate('/');
-      }, 2000);
+      await api.post('/auth/login', {
+        email,
+        password,
+      }).then(response => {
+        const { token, name, email } = response.data
+
+        // Dispatch action to store user data in Redux and localStorage
+        dispatch(setUser({ name, email, token }))
+
+        navigate('/')
+      }).catch(error => {
+        alert(error.response?.data?.message || error.message)
+      })
+
+      setIsSubmitting(false)
     } else {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-dark to-primary p-4 pt-20">
       {/* Logo */}
-      <Logo size={64} />
+      <Logo size={64}/>
 
       {/* Explanation text and link to Sign Up */}
       <div className="text-center mb-8">
@@ -50,7 +64,7 @@ const SignIn: React.FC = () => {
         <p className="text-lg text-white mt-2 font-sans">
           Access your art collections and explore more. Don't have an account yet?{' '}
           <span
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/signup')}
             className="text-accent hover:underline cursor-pointer"
           >
             Sign up here
@@ -70,7 +84,7 @@ const SignIn: React.FC = () => {
           {/* Email Field */}
           <div className="flex flex-col space-y-1">
             <div className="relative flex items-center">
-              <EnvelopeSimple size={24} className="absolute left-3 text-dark" />
+              <EnvelopeSimple size={24} className="absolute left-3 text-dark"/>
               <input
                 id="email"
                 type="email"
@@ -90,7 +104,7 @@ const SignIn: React.FC = () => {
           {/* Password Field */}
           <div className="flex flex-col space-y-1">
             <div className="relative flex items-center">
-              <Lock size={24} className="absolute left-3 text-dark" />
+              <Lock size={24} className="absolute left-3 text-dark"/>
               <input
                 id="password"
                 type={isPasswordVisible ? 'text' : 'password'}
@@ -106,7 +120,7 @@ const SignIn: React.FC = () => {
                 aria-label={isPasswordVisible ? 'Hide password' : 'Show password'}
                 className="absolute right-3 text-dark focus:outline-none"
               >
-                {isPasswordVisible ? <EyeSlash size={24} /> : <Eye size={24} />}
+                {isPasswordVisible ? <EyeSlash size={24}/> : <Eye size={24}/>}
               </button>
             </div>
           </div>
@@ -122,7 +136,7 @@ const SignIn: React.FC = () => {
               } focus:outline-none`}
             >
               {isSubmitting ? 'Signing In...' : 'Sign In'}
-              <ArrowRight size={24} className="ml-2" />
+              <ArrowRight size={24} className="ml-2"/>
             </button>
           </div>
         </form>
@@ -133,7 +147,7 @@ const SignIn: React.FC = () => {
         </p>
       </motion.div>
     </div>
-  );
-};
+  )
+}
 
-export default SignIn;
+export default SignIn

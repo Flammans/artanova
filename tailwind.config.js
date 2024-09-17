@@ -12,6 +12,8 @@ export default {
         secondary: '#EEEEEE',  // White
         accent: '#d4af37',  // Gold
         dark: '#242424', // Brown Dark
+        'red-light': '#B22222',  // Firebrick
+        'red-dark': '#8B0000',   // Dark Red
       },
       // Custom fonts
       fontFamily: {
