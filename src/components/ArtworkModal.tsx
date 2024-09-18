@@ -123,7 +123,7 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentI
           exit={{ opacity: 0 }}
           transition={{ type: 'spring', stiffness: 100, damping: 20 }}
           onWheel={handleWheel}
-          style={{ maxHeight: 'calc(100vh - 50px)' }}
+          style={{ maxHeight: 'calc(100vh - 100px)' }}
         >
           {/* Close Button */}
           <button

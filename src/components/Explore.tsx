@@ -1,19 +1,19 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, ChangeEvent } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import SectionTitle from './SectionTitle.tsx'
 import { api } from '../utils/api.ts'
 import Artwork from '../types/artwork.ts'
-import { AxiosResponse } from 'axios'
+import { AxiosError, AxiosResponse } from 'axios'
 import ArtworkModal from './ArtworkModal.tsx'
 import Masonry from 'react-masonry-css'
-import { MagnifyingGlass, CaretDown, CaretRight, SortAscending, SortDescending } from 'phosphor-react'
+import { MagnifyingGlass, CaretDown, CaretRight } from 'phosphor-react'
 import { motion } from 'framer-motion'
 import AddToCollectionButton from './AddToCollectionButton.tsx'
 import DetailsButton from './DetailsButton.tsx'
 
 // Animated SVGs for various server errors
 const ErrorSVG = ({ code }: { code: number }) => {
-  const errorSVGs: { [key: number]: JSX.Element } = {
+  const errorSVGs: { [key: number | string]: JSX.Element } = {
     400: (
       <svg className="h-24 w-24 text-accent animate-bounce" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.75L4.75 12H19.25L12 4.75Z"/>
@@ -82,8 +82,11 @@ const Explore = () => {
   const [sortField, setSortField] = useState<string>('updatedAt')
   const [sortOrder, setSortOrder] = useState<string>('desc')
   const [filterTypes, setFilterTypes] = useState<{ [key: string]: number }>({})
+  const [filterOrigins, setFilterOrigins] = useState<{ [key: string]: number }>({})
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
-  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(window.innerWidth >= 1024)
+  const [selectedOrigins, setSelectedOrigins] = useState<string[]>([])
+  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false)
+  const [isFilterOriginsOpen, setIsFilterOriginsOpen] = useState<boolean>(false)
   const [isImageError, setIsImageError] = useState<boolean>(false)
 
   useEffect(() => {
@@ -96,23 +99,21 @@ const Explore = () => {
       }
     }
     fetchTypes()
+
+    const fetchOrigins = async () => {
+      try {
+        const response: AxiosResponse<{ [key: string]: number }> = await api.get('/artworks/origins')
+        setFilterOrigins(response.data)
+      } catch (err) {
+        console.error('Error fetching artwork origins:', err)
+      }
+    }
+    fetchOrigins()
   }, [])
 
   useEffect(() => {
     setSearchQuery(searchQueryFromURL)
   }, [searchQueryFromURL])
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 1024) {
-        setIsFilterOpen(false)
-      } else {
-        setIsFilterOpen(true)
-      }
-    }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -123,19 +124,23 @@ const Explore = () => {
             search: searchQuery.toLowerCase(),
             sort: sortField,
             order: sortOrder,
-            type: selectedTypes.length > 0 ? selectedTypes : undefined,
+            types: selectedTypes.length > 0 ? selectedTypes.map(type => encodeURIComponent(type)).join(',') : undefined,
+            origins: selectedOrigins.length > 0 ? selectedOrigins.map(origin => encodeURIComponent(origin)).join(',') : undefined,
+            limit: 100,
           }
         })
         setArtworks(response.data)
         setError(null)
       } catch (err) {
-        setError(err.response?.status || 500)
+        if (err instanceof AxiosError) {
+          setError(err.response?.status || 500)
+        }
       } finally {
         setIsLoading(false)
       }
     }
     fetchData()
-  }, [searchQuery, sortField, sortOrder, selectedTypes])
+  }, [searchQuery, sortField, sortOrder, selectedTypes, selectedOrigins])
 
   useEffect(() => {
     if (location.pathname === '/explore-collections') {
@@ -161,13 +166,15 @@ const Explore = () => {
     }
   }
 
-  const toggleSortOrder = () => {
-    setSortOrder((prevOrder) => (prevOrder === 'asc' ? 'desc' : 'asc'))
+  const handleTypeChange = (type: string, value: boolean) => {
+    setSelectedTypes((prev) =>
+      value ? [...prev, type] : prev.filter((t) => t !== type)
+    )
   }
 
-  const handleTypeChange = (type: string) => {
-    setSelectedTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+  const handleOriginChange = (origin: string, value: boolean) => {
+    setSelectedOrigins((prev) =>
+      value ? [...prev, origin] : prev.filter((t) => t !== origin)
     )
   }
 
@@ -196,6 +203,7 @@ const Explore = () => {
   }
 
   const sortedFilterTypes = Object.keys(filterTypes).sort()
+  const sortedFilterOrigins = Object.keys(filterOrigins).sort()
 
   return (
     <motion.section
@@ -244,14 +252,6 @@ const Explore = () => {
               </select>
               <CaretDown className="absolute top-1/2 right-3 transform -translate-y-1/2 text-dark" size={24}/>
             </div>
-
-            <button
-              onClick={toggleSortOrder}
-              className="w-full lg:w-auto px-4 py-2 rounded-lg bg-accent text-dark flex items-center gap-2 border border-accent"
-            >
-              {sortOrder === 'asc' ? <SortAscending size={24}/> : <SortDescending size={24}/>}
-              {sortOrder === 'asc' ? 'Ascending' : 'Descending'}
-            </button>
           </div>
 
           {/* Error Handling */}
@@ -337,7 +337,7 @@ const Explore = () => {
 
                     <p className="text-sm text-secondary mt-2">
                       {artwork.artist && <span>By {truncateText(artwork.artist, 100)}</span>}
-                      {artwork.date && <span>, {artwork.date}</span>}
+                      {artwork.date && <span> {artwork.date}</span>}
                     </p>
 
                     <div className="flex space-x-4 mt-4">
@@ -381,12 +381,38 @@ const Explore = () => {
                   <div key={type} className="flex items-center space-x-2 mb-2">
                     <input
                       type="checkbox"
-                      checked={selectedTypes.includes(type)}
-                      onChange={() => handleTypeChange(type)}
+                      defaultChecked={selectedTypes.includes(type)}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => handleTypeChange(type, event.target.checked)}
                       className="form-checkbox text-accent focus:ring-0"
                     />
                     <label className="text-white">
                       {type} ({filterTypes[type]})
+                    </label>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+
+          <div className="bg-dark-800 p-4 rounded-lg">
+            <div className="flex items-center justify-between cursor-pointer" onClick={() => setIsFilterOriginsOpen(!isFilterOriginsOpen)}>
+              <h3 className="text-lg font-serif">Filter by Origin</h3>
+              {isFilterOriginsOpen ? <CaretDown size={24} className="text-accent"/> : <CaretRight size={24} className="text-accent"/>}
+            </div>
+
+            {isFilterOriginsOpen && (
+              <div className="mt-4 grid grid-cols-1 gap-2">
+                {sortedFilterOrigins.map((origin) => (
+                  <div key={origin} className="flex items-center space-x-2 mb-2">
+                    <input
+                      type="checkbox"
+                      defaultChecked={selectedTypes.includes(origin)}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => handleOriginChange(origin, event.target.checked)}
+                      className="form-checkbox text-accent focus:ring-0"
+                    />
+                    <label className="text-white">
+                      {origin} ({filterOrigins[origin]})
                     </label>
                   </div>
                 ))}
