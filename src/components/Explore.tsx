@@ -87,7 +87,6 @@ const Explore = () => {
   const [selectedOrigins, setSelectedOrigins] = useState<string[]>([])
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false)
   const [isFilterOriginsOpen, setIsFilterOriginsOpen] = useState<boolean>(false)
-  const [isImageError, setIsImageError] = useState<boolean>(false)
 
   useEffect(() => {
     const fetchTypes = async () => {
@@ -196,7 +195,7 @@ const Explore = () => {
 
   const breakpointColumnsObj = {
     default: 4,
-    1640: 3,
+    1920: 3,
     1280: 2,
     992: 2,
     700: 1
@@ -305,28 +304,17 @@ const Explore = () => {
                     <h3 className="text-xl font-serif mb-2">{truncateText(artwork.title, 100)}</h3>
 
                     <div className="relative">
-                      {!isImageError ? (
-                        <img
-                          src={artwork.preview}
-                          alt={artwork.title}
-                          className="w-full h-auto rounded-lg"
-                          onError={(e) => {
-                            // Check the second image if the first one fails
-                            if (artwork.images && artwork.images[0]) {
-                              e.currentTarget.src = artwork.images[0]
-                            } else {
-                              setIsImageError(true)
-                            }
-                          }}
-                        />
-                      ) : (
-                        <img
-                          src={artwork?.images[0]}
-                          alt={artwork.title}
-                          className="w-full h-auto rounded-lg"
-                          onError={() => {setIsImageError(true)}}
-                        />
-                      )}
+                      <img
+                        src={artwork.preview}
+                        alt={artwork.title}
+                        className="w-full h-auto rounded-lg"
+                        onError={(e) => {
+                          const placeholder = 'https://placehold.co/600x400?text=' + encodeURIComponent(artwork.title)
+                          if (e.currentTarget.src !== placeholder) {
+                            e.currentTarget.src = placeholder
+                          }
+                        }}
+                      />
                       <div
                         className="absolute inset-0 flex justify-center items-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                         onClick={() => setSelectedArtworkIndex(index)}
