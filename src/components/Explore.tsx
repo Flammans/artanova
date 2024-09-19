@@ -3,13 +3,15 @@ import { useLocation, useSearchParams } from 'react-router-dom'
 import SectionTitle from './SectionTitle.tsx'
 import { api } from '../utils/api.ts'
 import Artwork from '../types/artwork.ts'
-import { AxiosError, AxiosResponse } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import ArtworkModal from './ArtworkModal.tsx'
 import Masonry from 'react-masonry-css'
 import { MagnifyingGlass, CaretDown, CaretRight } from 'phosphor-react'
 import { motion } from 'framer-motion'
 import AddToCollectionButton from './AddToCollectionButton.tsx'
 import DetailsButton from './DetailsButton.tsx'
+import Loader from './Loader.tsx'
+import throttle from 'lodash/throttle'
 
 // Animated SVGs for various server errors
 const ErrorSVG = ({ code }: { code: number }) => {
@@ -72,8 +74,7 @@ const Explore = () => {
   const exploreSectionRef = useRef<HTMLDivElement>(null)
   const location = useLocation()
   const [searchParams] = useSearchParams()
-
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
   const [artworks, setArtworks] = useState<Artwork[]>([])
   const [error, setError] = useState<number | null>(null)
   const [selectedArtworkIndex, setSelectedArtworkIndex] = useState<number | null>(null)
@@ -87,6 +88,10 @@ const Explore = () => {
   const [selectedOrigins, setSelectedOrigins] = useState<string[]>([])
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false)
   const [isFilterOriginsOpen, setIsFilterOriginsOpen] = useState<boolean>(false)
+  const [hasMore, setHasMore] = useState<boolean>(false)
+  const [screensLeft, setScreensLeft] = useState<number>(0)
+
+  const perPage = 100
 
   useEffect(() => {
     const fetchTypes = async () => {
@@ -114,32 +119,62 @@ const Explore = () => {
     setSearchQuery(searchQueryFromURL)
   }, [searchQueryFromURL])
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
-      try {
-        const response: AxiosResponse<Artwork[]> = await api.get('/artworks', {
-          params: {
-            search: searchQuery.toLowerCase(),
-            sort: sortField,
-            order: sortOrder,
-            types: selectedTypes.length > 0 ? selectedTypes.map(type => encodeURIComponent(type)).join(',') : undefined,
-            origins: selectedOrigins.length > 0 ? selectedOrigins.map(origin => encodeURIComponent(origin)).join(',') : undefined,
-            limit: 100,
-          }
-        })
-        setArtworks(response.data)
-        setError(null)
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          setError(err.response?.status || 500)
-        }
-      } finally {
-        setIsLoading(false)
+  let controller: AbortController
+
+  const fetchData = async (reset: boolean = false) => {
+    setIsLoading(true)
+    try {
+      if (controller) {
+        controller.abort()
       }
+      controller = new AbortController()
+      const response: AxiosResponse<Artwork[]> = await api.get('/artworks', {
+        params: {
+          search: searchQuery,
+          sort: sortField,
+          order: sortOrder,
+          types: selectedTypes.length > 0 ? selectedTypes.map(type => encodeURIComponent(type)).join(',') : undefined,
+          origins: selectedOrigins.length > 0 ? selectedOrigins.map(origin => encodeURIComponent(origin)).join(',') : undefined,
+          limit: perPage,
+          cursor: !reset && artworks.length > 0 ? artworks[artworks.length - 1].id : undefined
+        },
+        signal: controller.signal
+      })
+      setError(null)
+      setArtworks((prev) => [...prev, ...response.data.filter(artwork => !prev.find(a => a.id === artwork.id))])
+      setHasMore(response.data.length === perPage)
+      setIsLoading(false)
+    } catch (err) {
+      if (axios.isCancel(err)) {
+        return
+      }
+      if (err instanceof AxiosError) {
+        setError(err.response?.status || 500)
+      } else {
+        setError(500)
+      }
+      setHasMore(false)
+      setIsLoading(false)
     }
-    fetchData()
+  }
+  useEffect(() => {
+    setArtworks([])
+    fetchData(true)
   }, [searchQuery, sortField, sortOrder, selectedTypes, selectedOrigins])
+
+  useEffect(() => {
+    const updatePosition = () => {
+      setScreensLeft((document.body.scrollHeight - window.scrollY - window.innerHeight) / window.innerHeight)
+    }
+    window.addEventListener('scroll', throttle(updatePosition, 100))
+    return () => window.removeEventListener('scroll', updatePosition)
+  }, [])
+
+  useEffect(() => {
+    if (screensLeft < 2 && hasMore && !isLoading) {
+      fetchData()
+    }
+  }, [screensLeft])
 
   useEffect(() => {
     if (location.pathname === '/explore-collections') {
@@ -253,94 +288,67 @@ const Explore = () => {
             </div>
           </div>
 
+          <Masonry
+            breakpointCols={breakpointColumnsObj}
+            className="flex w-full"
+            columnClassName="masonry-grid_column"
+          >
+            {artworks.map((artwork, index) => {
+
+              return (
+                <motion.div
+                  key={artwork.id}
+                  className="relative bg-dark-800 p-4 rounded-lg group"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: artworks.length <= perPage ? index * 0.05 : 0 }}
+                >
+                  <h3 className="text-xl font-serif mb-2">{truncateText(artwork.title, 100)}</h3>
+
+                  <div className="relative">
+                    <img
+                      src={artwork.preview}
+                      alt={artwork.title}
+                      className="w-full h-auto rounded-lg"
+                      onError={(e) => {
+                        const placeholder = 'https://placehold.co/600x400?text=' + encodeURIComponent(artwork.title)
+                        if (e.currentTarget.src !== placeholder) {
+                          e.currentTarget.src = placeholder
+                        }
+                      }}
+                    />
+                    <div
+                      className="absolute inset-0 flex justify-center items-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      onClick={() => setSelectedArtworkIndex(index)}
+                    >
+                      <MagnifyingGlass size={48} className="text-accent"/>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-secondary mt-2">
+                    {artwork.artist && <span>By {truncateText(artwork.artist, 100)}</span>}
+                    {artwork.date && <span> {artwork.date}</span>}
+                  </p>
+
+                  <div className="flex space-x-4 mt-4">
+                    <DetailsButton
+                      onClick={() => window.open(artwork.url, '_blank')}
+                      text="Visit Source Website"
+                      color="#3B82F6"
+                    />
+                    <AddToCollectionButton onClick={() => console.log('click')}/>
+                  </div>
+                </motion.div>
+              )
+
+            })}
+          </Masonry>
+
           {/* Error Handling */}
           {error && <ErrorMessage code={error} message="Failed to fetch artworks from server."/>}
 
           {/* Loading Spinner */}
-          {isLoading ? (
-            <motion.div
-              className="flex justify-center items-center h-full"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              <svg
-                className="animate-spin h-12 w-12 text-accent"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                ></path>
-              </svg>
-            </motion.div>
-          ) : (
-            <Masonry
-              breakpointCols={breakpointColumnsObj}
-              className="flex w-full"
-              columnClassName="masonry-grid_column"
-            >
-              {artworks.map((artwork, index) => {
-
-                return (
-                  <motion.div
-                    key={artwork.id}
-                    className="relative bg-dark-800 p-4 rounded-lg group"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                  >
-                    <h3 className="text-xl font-serif mb-2">{truncateText(artwork.title, 100)}</h3>
-
-                    <div className="relative">
-                      <img
-                        src={artwork.preview}
-                        alt={artwork.title}
-                        className="w-full h-auto rounded-lg"
-                        onError={(e) => {
-                          const placeholder = 'https://placehold.co/600x400?text=' + encodeURIComponent(artwork.title)
-                          if (e.currentTarget.src !== placeholder) {
-                            e.currentTarget.src = placeholder
-                          }
-                        }}
-                      />
-                      <div
-                        className="absolute inset-0 flex justify-center items-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                        onClick={() => setSelectedArtworkIndex(index)}
-                      >
-                        <MagnifyingGlass size={48} className="text-accent"/>
-                      </div>
-                    </div>
-
-                    <p className="text-sm text-secondary mt-2">
-                      {artwork.artist && <span>By {truncateText(artwork.artist, 100)}</span>}
-                      {artwork.date && <span> {artwork.date}</span>}
-                    </p>
-
-                    <div className="flex space-x-4 mt-4">
-                      <DetailsButton
-                        onClick={() => window.open(artwork.url, '_blank')}
-                        text="Visit Source Website"
-                        color="#3B82F6"
-                      />
-                      <AddToCollectionButton onClick={() => console.log('click')}/>
-                    </div>
-                  </motion.div>
-                )
-              })}
-            </Masonry>
-          )}
+          {isLoading && <Loader/>}
 
           {/* Popup to view artwork details */}
           {selectedArtworkIndex !== null && (
