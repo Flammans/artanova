@@ -336,7 +336,7 @@ const Explore = () => {
                       text="Visit Source Website"
                       color="#3B82F6"
                     />
-                    <AddToCollectionButton onClick={() => console.log('click')}/>
+                    <AddToCollectionButton artworkId={artwork.id}/>
                   </div>
                 </motion.div>
               )

@@ -7,7 +7,10 @@ import { Route, Routes, Navigate } from 'react-router-dom'
 import SignUp from './screens/SignUp'
 import SignIn from './screens/SignIn'
 import Profile from './screens/Profile'
-import { useAppSelector } from './stores/hooks'
+import { useAppDispatch, useAppSelector } from './stores/hooks'
+import ToastContainer from './components/ToastContainer.tsx'
+import { useRef } from 'react'
+import { fetchCollections } from './stores/collectionsSlice.ts'
 
 // Protected Route component for authorized users
 const ProtectedRoute: React.FC<{ element: JSX.Element }> = ({ element }) => {
@@ -22,6 +25,13 @@ const RedirectIfAuthenticated: React.FC<{ element: JSX.Element }> = ({ element }
 }
 
 function App () {
+
+  // Reference to ToastContainer to trigger toasts from anywhere (if needed later)
+  const toastRef = useRef<{ addToast: (message: string, type: 'success' | 'error') => void } | null>(null)
+
+  const dispatch = useAppDispatch()
+  dispatch(fetchCollections())
+
   return (
     <>
       <div className="flex flex-col min-h-screen">
@@ -45,6 +55,9 @@ function App () {
 
         <Footer/>
       </div>
+
+      {/* Toast Container for notifications */}
+      <ToastContainer ref={toastRef}/>
     </>
   )
 }

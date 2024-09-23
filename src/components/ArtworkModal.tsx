@@ -252,9 +252,7 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentI
               color="#3B82F6"
             />
 
-            <AddToCollectionButton
-              onClick={() => alert(`Artwork "${artwork.title}" added to your collection!`)}
-            />
+            <AddToCollectionButton artworkId={artwork.id}/>
 
             {/* Previous Button */}
             {artworks.length > 1 && currentIndex > 0 && (
