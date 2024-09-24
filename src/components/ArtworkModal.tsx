@@ -5,12 +5,13 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 import 'swiper/css/effect-fade'
-import { Navigation, Pagination, A11y, EffectFade } from 'swiper/modules'
+import { Navigation, Pagination, A11y, EffectFade, Thumbs } from 'swiper/modules'
 import FocusLock from 'react-focus-lock'
 import { motion } from 'framer-motion'
 import Artwork from '../types/artwork'
 import DetailsButton from './DetailsButton'
 import AddToCollectionButton from './AddToCollectionButton'
+import Loader from './Loader'
 
 interface ArtworkModalProps {
   artwork: Artwork;
@@ -21,16 +22,24 @@ interface ArtworkModalProps {
   onNext: () => void;
 }
 
-const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentIndex, onClose, onPrev, onNext }) => {
+const ArtworkModal: React.FC<ArtworkModalProps> = ({
+  artwork,
+  artworks,
+  currentIndex,
+  onClose,
+  onPrev,
+  onNext,
+}) => {
   const modalRef = useRef<HTMLDivElement>(null)
-  const [isImageLoading, setIsImageLoading] = useState<boolean>(true)  // Loader state for image loading
+  const [isImageLoading, setIsImageLoading] = useState<boolean[]>(Array(artwork.images.length).fill(true))
   const [zoomLevel, setZoomLevel] = useState<number>(8)
   const [isZoomActive, setIsZoomActive] = useState<boolean>(true)
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [imageSize, setImageSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 })
   const [isLensVisible, setIsLensVisible] = useState<boolean>(false)
-  const zoomLensSize = 250
   const [animationKey, setAnimationKey] = useState<number>(0)
+  const [thumbsSwiper, setThumbsSwiper] = useState<any>(null)
+  const zoomLensSize = 250 // Lens size for zoom effect
 
   // Disable scrolling on the main page when the modal is open
   useEffect(() => {
@@ -44,13 +53,13 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentI
   const handleKeyDown = useCallback(
     (e: KeyboardEvent): void => {
       if (e.key === 'Escape') {
-        setTimeout(onClose, 300)  // Close modal after animation
+        onClose()
       } else if (e.key === 'Control') {
-        setIsZoomActive((prevState) => !prevState)  // Toggle zoom on/off
+        setIsZoomActive((prevState) => !prevState) // Toggle zoom on/off
       } else if (e.key === 'ArrowLeft') {
-        onPrev()  // Go to previous artwork
+        onPrev()
       } else if (e.key === 'ArrowRight') {
-        onNext()  // Go to next artwork
+        onNext()
       }
     },
     [onClose, onPrev, onNext]
@@ -64,23 +73,39 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentI
     }
   }, [handleKeyDown])
 
-  // Trigger animation when the artwork changes
+  // Reset image loading state and trigger animation when the artwork changes
   useEffect(() => {
-    setAnimationKey((prev) => prev + 1)  // Update key to trigger re-animation
-  }, [currentIndex])
+    setAnimationKey((prev) => prev + 1) // Update key to trigger re-animation
+    setIsImageLoading(Array(artwork.images.length).fill(true)) // Reset loading state for new artwork
+  }, [currentIndex, artwork.images.length])
+
+  // Handle image loading to disable loader for the loaded image
+  const handleImageLoad = (index: number, e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    // Check if e.currentTarget is defined
+    const currentTarget = e.currentTarget as HTMLImageElement | undefined
+    const width = currentTarget?.naturalWidth || 500
+    const height = currentTarget?.naturalHeight || 500
+
+    setImageSize({ width, height })
+    setIsImageLoading((prev) => {
+      const newLoadingState = [...prev]
+      newLoadingState[index] = false // Disable loader for the loaded image
+      return newLoadingState
+    })
+  }
 
   // Handle closing the modal when clicking outside of it
   const handleClickOutside = (e: MouseEvent<HTMLDivElement>): void => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      setTimeout(() => onClose(), 300)  // Close modal after animation completes
+      onClose()
     }
   }
 
-  // Handle mouse wheel scroll to zoom in and out
+  // Handle mouse wheel scroll to zoom in and out (Shift key must be held)
   const handleWheel = (e: WheelEvent<HTMLDivElement>) => {
     if (isZoomActive) {
       e.preventDefault()
-      setZoomLevel((prevZoom) => Math.max(8, Math.max(2, prevZoom + (e.deltaY > 0 ? -1 : 1))))  // Adjust zoom level
+      setZoomLevel((prevZoom) => Math.max(8, Math.max(2, prevZoom + (e.deltaY > 0 ? -1 : 1)))) // Adjust zoom level
     }
   }
 
@@ -91,19 +116,12 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentI
     const y = e.clientY - rect.top
 
     setCursorPos({ x, y })
-    setIsLensVisible(true)  // Show the lens when mouse moves inside the image
+    setIsLensVisible(true)
   }
 
   // Hide the zoom lens when the mouse leaves the image
   const handleMouseLeave = () => {
     setIsLensVisible(false)
-  }
-
-  // Handle image loading to capture its dimensions
-  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    const { width, height } = e.currentTarget
-    setImageSize({ width, height })
-    setIsImageLoading(false)  // Disable loader after image has loaded
   }
 
   return (
@@ -128,9 +146,7 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentI
           {/* Close Button */}
           <button
             className="text-white text-xl absolute top-4 right-4"
-            onClick={() => {
-              setTimeout(() => onClose(), 300)
-            }}
+            onClick={onClose}
             aria-label="Close"
           >
             <X size={24} weight="bold"/>
@@ -138,73 +154,53 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentI
 
           {/* Artwork Title with animation */}
           <motion.h2
-            key={animationKey}  // Changing key forces re-render and triggers animation
+            key={animationKey}
             className="text-3xl text-accent mb-4 font-serif"
-            initial={{ opacity: 0, y: -20 }}  // Start position for animation
-            animate={{ opacity: 1, y: 0 }}  // End position for animation
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
             {artwork.title}
           </motion.h2>
-          <div className="relative">
-            {/* Show loader if the image is still loading */}
-            {isImageLoading && (
-              <div className="absolute inset-0 flex justify-center items-center bg-dark">
-                <svg
-                  className="animate-spin h-10 w-10 text-accent"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  ></path>
-                </svg>
-              </div>
-            )}
 
-            {/* Swiper slider with fade effect */}
+          <div className="relative">
+            {/* Swiper slider with fade effect and thumbs */}
             <Swiper
               spaceBetween={10}
               slidesPerView={1}
-              effect="fade"
               fadeEffect={{ crossFade: true }}
-              modules={[Navigation, Pagination, A11y, EffectFade]}
+              modules={[Navigation, Pagination, A11y, EffectFade, Thumbs]}
               navigation
               pagination={{ clickable: true }}
+              scrollbar={{ draggable: true }}
+              thumbs={{ swiper: thumbsSwiper }}
+              style={{ width: '100%' }} // Ensure slider is always full width
             >
               {artwork.images.map((image: string, index: number) => (
-                <SwiperSlide key={index}>
-                  <div
-                    className="relative"
-                    style={{
-                      backgroundImage: `url(${image})`,
-                      backgroundPosition: `${(cursorPos.x / imageSize.width) * 100}% ${(cursorPos.y / imageSize.height) * 100}%`,
-                      backgroundSize: `${zoomLevel * 100}%`,
-                      height: 'auto',
-                    }}
-                    onMouseMove={handleMouseMove}
-                    onMouseLeave={handleMouseLeave}
-                  >
+                <SwiperSlide key={index} style={{ width: '100%', minWidth: '100%' }}> {/* Ensures slide takes 100% width */}
+                  <div className="relative flex bg-accent bg-opacity-20" style={{ minHeight: '500px' }}>
+                    {/* Show loader while image is loading */}
+                    {isImageLoading[index] && (
+                      <div className="absolute inset-0 flex justify-center items-center bg-dark">
+                        <Loader/>
+                      </div>
+                    )}
+
+                    {/* Image that is always rendered but hidden until it's loaded */}
                     <img
                       src={image}
-                      alt={`Artwork slide ${index}`}
-                      className="w-full h-auto object-contain rounded-lg min-w-full"
-                      onLoad={handleImageLoad}  // Set image size and disable loader on load
+                      alt={`Artwork ${index}`}
+                      className="w-full h-auto object-contain duration-500"
+                      style={{
+                        opacity: isImageLoading[index] ? 0 : 1, // Use opacity to hide image until it's loaded
+                      }}
+                      onLoad={(e) => handleImageLoad(index, e)}
+                      onMouseMove={handleMouseMove}
+                      onMouseLeave={handleMouseLeave}
                     />
 
                     {/* Zoom lens simulation */}
-                    {isZoomActive && isLensVisible && (
+                    {isZoomActive && isLensVisible && !isImageLoading[index] && (
                       <div
                         className="absolute rounded-full border border-accent pointer-events-none"
                         style={{
@@ -222,18 +218,53 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({ artwork, artworks, currentI
                 </SwiperSlide>
               ))}
             </Swiper>
+
+            {/* Conditionally render Thumbnails Swiper */}
+            {artwork.images.length > 1 && (
+              <Swiper
+                onSwiper={setThumbsSwiper}
+                spaceBetween={10}
+                slidesPerView={4}
+                watchSlidesProgress
+                className="mt-4"
+              >
+                {artwork.images.map((image: string, index: number) => (
+                  <SwiperSlide key={index} style={{ width: '250px', height: '250px' }}> {/* Ensure thumbnails are 250x250px */}
+                    <div className="relative w-full h-full flex justify-center items-center bg-accent bg-opacity-10">
+                      {/* Loader for thumbnail */}
+                      {isImageLoading[index] && (
+                        <div className="absolute inset-0 flex justify-center items-center">
+                          <Loader/>
+                        </div>
+                      )}
+
+                      {/* Thumbnail image */}
+                      <img
+                        src={image}
+                        alt={`Thumbnail ${index}`}
+                        className="object-cover w-full h-full rounded-lg"
+                        style={{
+                          opacity: isImageLoading[index] ? 0 : 1, // Use opacity for thumbnail as well
+                        }}
+                        onLoad={() => handleImageLoad(index, {} as React.SyntheticEvent<HTMLImageElement, Event>)} // Ensure thumbnail also hides loader when loaded
+                      />
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            )}
           </div>
 
           {/* Zoom hint */}
           <div className="mt-4 text-sm text-white bg-black bg-opacity-50 px-2 py-1 rounded-lg">
-            You can toggle zoom by pressing <strong>Ctrl</strong>. Use the mouse wheel to zoom in and out.
+            You can toggle zoom by pressing <strong>Ctrl</strong>. Use the <strong>mouse wheel</strong> to zoom in and out.
           </div>
 
           {/* Artwork Details with animation */}
           <motion.div
-            key={`details-${animationKey}`}  // Different key for details to trigger re-animation
+            key={`details-${animationKey}`}
             className="mt-6 space-y-2"
-            initial={{ opacity: 0 }}  // Fade in animation for details
+            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
