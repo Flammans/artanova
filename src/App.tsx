@@ -3,14 +3,15 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import Home from './screens/Home'
 import NotFound from './screens/NotFound'
-import { Route, Routes, Navigate } from 'react-router-dom'
 import SignUp from './screens/SignUp'
 import SignIn from './screens/SignIn'
 import Profile from './screens/Profile'
-import { useAppDispatch, useAppSelector } from './stores/hooks'
-import ToastContainer from './components/ToastContainer.tsx'
+import Collections from './screens/Collections'
+import CollectionDetails from './screens/CollectionDetails'
+import { Route, Routes, Navigate } from 'react-router-dom'
+import { useAppSelector } from './stores/hooks'
+import ToastContainer from './components/ToastContainer'
 import { useRef } from 'react'
-import { fetchCollections } from './stores/collectionsSlice.ts'
 
 // Protected Route component for authorized users
 const ProtectedRoute: React.FC<{ element: JSX.Element }> = ({ element }) => {
@@ -25,12 +26,7 @@ const RedirectIfAuthenticated: React.FC<{ element: JSX.Element }> = ({ element }
 }
 
 function App () {
-
-  // Reference to ToastContainer to trigger toasts from anywhere (if needed later)
   const toastRef = useRef<{ addToast: (message: string, type: 'success' | 'error') => void } | null>(null)
-
-  const dispatch = useAppDispatch()
-  dispatch(fetchCollections())
 
   return (
     <>
@@ -46,7 +42,8 @@ function App () {
 
             {/* Protected routes */}
             <Route path="/profile" element={<ProtectedRoute element={<Profile/>}/>}/>
-            <Route path="/explore-collections" element={<ProtectedRoute element={<Home/>}/>}/>
+            <Route path="/collections" element={<ProtectedRoute element={<Collections/>}/>}/>
+            <Route path="/collections/:uuid" element={<ProtectedRoute element={<CollectionDetails/>}/>}/>
 
             {/* Catch-all for not found */}
             <Route path="*" element={<NotFound/>}/>

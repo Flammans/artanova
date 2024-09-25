@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 // Define the structure of the user state, including the token
 interface UserState {
+  id: number | null;
   name: string | null;
   email: string | null;
   token: string | null;
@@ -13,7 +14,12 @@ const getUserFromLocalStorage = (): UserState => {
   if (userData) {
     return JSON.parse(userData)
   }
-  return { name: null, email: null, token: null }
+  return {
+    id: null,
+    name: null,
+    email: null,
+    token: null
+  }
 }
 
 // Initial state for the user, using data from localStorage if available
@@ -26,6 +32,7 @@ const userSlice = createSlice({
   reducers: {
     // Reducer to set user data and save it to localStorage
     setUser: (state, action: PayloadAction<UserState>) => {
+      state.id = action.payload.id
       state.name = action.payload.name
       state.email = action.payload.email
       state.token = action.payload.token
@@ -33,6 +40,7 @@ const userSlice = createSlice({
     },
     // Reducer to clear user data and remove it from localStorage
     clearUser: (state) => {
+      state.id = null
       state.name = null
       state.email = null
       state.token = null

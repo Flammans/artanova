@@ -37,10 +37,10 @@ const SignIn: React.FC = () => {
         email,
         password,
       }).then(response => {
-        const { token, name, email } = response.data
+        const { id, token, name, email } = response.data
 
         // Dispatch action to store user data in Redux and localStorage
-        dispatch(setUser({ name, email, token }))
+        dispatch(setUser({ id, name, email, token }))
 
         navigate('/')
       }).catch(error => {
