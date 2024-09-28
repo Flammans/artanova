@@ -87,11 +87,6 @@ const Header: React.FC = () => {
               Explore
             </button>
           </li>
-          <li>
-            <button onClick={() => handleScrollToSection('about-section')} className="hover:text-accent focus:text-accent">
-              About
-            </button>
-          </li>
         </ul>
       </nav>
 
@@ -122,10 +117,10 @@ const Header: React.FC = () => {
 
       {/* User Menu or Authentication Buttons */}
       <div className="relative ml-4">
-        <div className="hidden lg:flex items-center">
+        <div className="lg:flex items-center">
           <button onClick={toggleUserMenu} aria-label="Open user menu" className="flex items-center focus:outline-none">
             <UserCircle size={32} className="hover:text-accent focus:text-accent"/>
-            {user.token && <span className="ml-2">{user.name}</span>}
+            <div className="hidden lg:flex items-center">{user.token && <span className="ml-2">{user.name}</span>}</div>
           </button>
         </div>
 

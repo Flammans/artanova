@@ -49,7 +49,7 @@ const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork, onViewDetails, isInC
     <div className="flex space-x-4 mt-4">
       <DetailsButton onClick={() => window.open(artwork.url, '_blank')} text="Visit Source Website" color="#3B82F6"/>
       {isInCollectionPage ? (
-        <RemoveFromCollectionButton artworkId={artwork.id} collectionUuid={collectionUuid!} fetchCollection={fetchCollection}/>
+        <RemoveFromCollectionButton artworkId={artwork.id} collectionUuid={collectionUuid!} fetchCollection={fetchCollection!}/>
       ) : (
         <AddToCollectionButton artworkId={artwork.id}/>
       )}
