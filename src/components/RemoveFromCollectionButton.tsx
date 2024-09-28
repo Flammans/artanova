@@ -1,17 +1,21 @@
 import React from 'react'
-import { api } from '../utils/api'
 import { Trash } from 'phosphor-react'
+import { deleteElementFromCollection } from '../stores/collectionsSlice.ts'
+import { useAppDispatch } from '../stores/hooks.ts'
 
 interface RemoveFromCollectionButtonProps {
-  elementId: number;
+  artworkId: number;
   collectionUuid: string;
+  fetchCollection: () => void;
 }
 
-const RemoveFromCollectionButton: React.FC<RemoveFromCollectionButtonProps> = ({ elementId, collectionUuid }) => {
-  const handleRemove = async (collectionUuid: string, elementId: number) => {
+const RemoveFromCollectionButton: React.FC<RemoveFromCollectionButtonProps> = ({ artworkId, collectionUuid, fetchCollection }) => {
+  const dispatch = useAppDispatch()
+
+  const handleRemove = async (collectionUuid: string, artworkId: number) => {
     try {
-      await api.delete(`/collections/${collectionUuid}/elements/${elementId}`)
-      //@TODO
+      await dispatch(deleteElementFromCollection(collectionUuid, artworkId))
+      await fetchCollection()
     } catch (error) {
       console.error('Failed to remove artwork from collection:', error)
     }
@@ -19,7 +23,7 @@ const RemoveFromCollectionButton: React.FC<RemoveFromCollectionButtonProps> = ({
 
   return (
     <button
-      onClick={() => handleRemove(collectionUuid, elementId)}
+      onClick={() => handleRemove(collectionUuid, artworkId)}
       className="bg-red-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-700 transition duration-300 ease-in-out"
       aria-label="Remove from collection"
     >

@@ -11,10 +11,10 @@ interface ArtworkCardProps {
   onViewDetails: () => void,
   isInCollectionPage?: boolean,
   collectionUuid?: string,
-  elementId?: number,
+  fetchCollection?: () => void,
 }
 
-const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork, onViewDetails, isInCollectionPage = false, collectionUuid, elementId, }) => (
+const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork, onViewDetails, isInCollectionPage = false, collectionUuid, fetchCollection }) => (
   <motion.div
     className="relative bg-dark-800 p-4 rounded-lg group"
     initial={{ opacity: 0, scale: 0.95 }}
@@ -49,7 +49,7 @@ const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork, onViewDetails, isInC
     <div className="flex space-x-4 mt-4">
       <DetailsButton onClick={() => window.open(artwork.url, '_blank')} text="Visit Source Website" color="#3B82F6"/>
       {isInCollectionPage ? (
-        <RemoveFromCollectionButton elementId={elementId!} collectionUuid={collectionUuid!}/>
+        <RemoveFromCollectionButton artworkId={artwork.id} collectionUuid={collectionUuid!} fetchCollection={fetchCollection}/>
       ) : (
         <AddToCollectionButton artworkId={artwork.id}/>
       )}

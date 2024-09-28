@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { List, X, MagnifyingGlass, User, SignOut, UserCircle, Star } from 'phosphor-react'
 import { motion } from 'framer-motion'
-import { useNavigate, useLocation } from 'react-router-dom' // Added useLocation
+import { useNavigate, useLocation, Link } from 'react-router-dom' // Added useLocation
 import Logo from './Logo'
 import { useAppDispatch, useAppSelector } from '../stores/hooks.ts'
 import { clearUser } from '../stores/userSlice.ts'
@@ -141,11 +141,11 @@ const Header: React.FC = () => {
                 <>
                   <li className="flex items-center p-2 hover:text-accent">
                     <User size={20} className="mr-2"/>
-                    <a href="/profile">Profile</a>
+                    <Link to="/profile">Profile</Link>
                   </li>
                   <li className="flex items-center p-2 hover:text-accent">
                     <Star size={20} className="mr-2"/>
-                    <a href="/collections">My Collections</a>
+                    <Link to="/collections">My Collections</Link>
                   </li>
                   <li className="flex items-center p-2 hover:text-accent">
                     <SignOut size={20} className="mr-2"/>
@@ -182,27 +182,17 @@ const Header: React.FC = () => {
               Explore
             </button>
           </li>
-          <li>
-            <button onClick={() => handleScrollToSection('about-section')} className="hover:text-accent focus:text-accent">
-              About
-            </button>
-          </li>
-          <li>
-            <button onClick={() => handleScrollToSection('contact-section')} className="hover:text-accent focus:text-accent">
-              Contact
-            </button>
-          </li>
 
           {/* User options in mobile view */}
           {user.token && (
             <>
               <li className="flex items-center hover:text-accent">
                 <User size={20} className="mr-2"/>
-                <a href="/profile">Profile</a>
+                <Link to="/profile">Profile</Link>
               </li>
               <li className="flex items-center hover:text-accent">
                 <Star size={20} className="mr-2"/>
-                <a href="/collections">My Collections</a>
+                <Link to="/collections">My Collections</Link>
               </li>
               <li className="flex items-center hover:text-accent">
                 <SignOut size={20} className="mr-2"/>

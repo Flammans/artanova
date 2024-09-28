@@ -23,21 +23,21 @@ const CollectionDetails: React.FC = () => {
   const [selectedArtworkIndex, setSelectedArtworkIndex] = useState<number | null>(null)
   const toastRef = useRef<{ addToast: (message: string, type: 'success' | 'error') => void } | null>(null) // Ref for managing toasts
 
-  useEffect(() => {
-    const fetchCollection = async () => {
-      setIsLoading(true)
-      try {
-        const response = await api.get(`/collections/${uuid}`)
-        setCollection(response.data)
-        setError(null)
-      } catch (error) {
-        console.error('Error fetching collection:', error)
-        setError('Failed to load collection')
-      } finally {
-        setIsLoading(false)
-      }
+  const fetchCollection = async () => {
+    setIsLoading(true)
+    try {
+      const response = await api.get(`/collections/${uuid}`)
+      setCollection(response.data)
+      setError(null)
+    } catch (error) {
+      console.error('Error fetching collection:', error)
+      setError('Failed to load collection')
+    } finally {
+      setIsLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchCollection()
   }, [uuid])
 
@@ -96,6 +96,8 @@ const CollectionDetails: React.FC = () => {
         artworks={collection.elements.map((element) => element.artwork)} // Map collection elements to artworks
         onViewArtwork={setSelectedArtworkIndex} // Handle artwork selection for the modal
         isInCollectionPage={true} // Indicate that this is a collection page
+        collectionUuid={uuid} // Pass collection UUID to the grid
+        fetchCollection={fetchCollection} // Refetch collection after deleting an artwork
       />
 
       {/* Modal for artwork details */}

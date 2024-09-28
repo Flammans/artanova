@@ -93,3 +93,15 @@ export function deleteCollection (collectionUuid: string) {
     await dispatch(fetchCollections()) // Fetch collections after deletion
   }
 }
+
+// Delete element from collection action creator
+export function deleteElementFromCollection (collectionUuid: string, artworkId: number) {
+  return async (_dispatch: AppDispatch, getState: () => RootState) => {
+    const { token } = getState().user // Get user token from state
+    await api.delete(`/collections/${collectionUuid}/artworks/${artworkId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  }
+}

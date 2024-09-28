@@ -6,9 +6,11 @@ interface ArtworkGridProps {
   artworks: Artwork[]; // Array of artworks to display
   onViewArtwork: (index: number) => void; // Function to open artwork details modal
   isInCollectionPage?: boolean; // Flag to determine if the grid is on the collection page
+  collectionUuid?: string; // UUID of the collection
+  fetchCollection?: () => void; // Function to refetch the collection
 }
 
-const ArtworkGrid: React.FC<ArtworkGridProps> = ({ artworks, onViewArtwork, isInCollectionPage }) => {
+const ArtworkGrid: React.FC<ArtworkGridProps> = ({ artworks, onViewArtwork, isInCollectionPage, collectionUuid, fetchCollection }) => {
   // Configuration for Masonry columns based on the screen size
   const breakpointColumnsObj = {
     default: 4,   // Default 4 columns
@@ -30,6 +32,8 @@ const ArtworkGrid: React.FC<ArtworkGridProps> = ({ artworks, onViewArtwork, isIn
             artwork={artwork}
             onViewDetails={() => onViewArtwork(index)} // Pass index to handle artwork view
             isInCollectionPage={isInCollectionPage} // Flag to determine if the card is on the collection page
+            collectionUuid={collectionUuid} // Pass collection UUID to the card
+            fetchCollection={fetchCollection} // Function to refetch the collection
           />
         </div>
       ))}
