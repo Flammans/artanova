@@ -112,14 +112,14 @@ const Collections: React.FC = () => {
           filteredCollections.map((collection, index) => (
             <motion.div
               key={collection.uuid}
-              className="bg-accent bg-opacity-10 p-4 rounded-lg shadow-lg relative"
+              className="bg-white bg-opacity-90 p-4 rounded-lg shadow-lg relative"
               initial="hidden"
               animate="visible"
               custom={index} // Pass index to animate with staggered delay
               variants={itemVariants}
             >
               {/* Link to the collection page */}
-              <Link to={`/collections/${collection.uuid}`} className="text-accent hover:text-blue-300">
+              <Link to={`/collections/${collection.uuid}`} className="text-black hover:text-gray-500">
                 <h3 className="text-2xl font-semibold pb-16 pr-20">{collection.title}</h3>
               </Link>
 
