@@ -1,19 +1,22 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useAppDispatch, useAppSelector } from '../stores/hooks'
-import { fetchCollections } from '../stores/collectionsSlice'
+import { fetchCollections, createCollection, deleteCollection } from '../stores/collectionsSlice'
 import { Link } from 'react-router-dom'
 import SectionTitle from '../components/SectionTitle'
 import { motion } from 'framer-motion'
 import ShareButton from '../components/ShareButton'
-import { Trash, MagnifyingGlass } from 'phosphor-react'
+import { Trash, MagnifyingGlass, PlusCircle } from 'phosphor-react'
+import ToastContainer from '../components/ToastContainer'
 
 const Collections: React.FC = () => {
   const dispatch = useAppDispatch()
   const collections = useAppSelector((state) => state.collections.collections)
   const userId = useAppSelector((state) => state.user.id)
+  const toastRef = useRef<{ addToast: (message: string, type: 'success' | 'error') => void } | null>(null)
 
   // State for search input
   const [searchTerm, setSearchTerm] = useState('')
+  const [newCollectionName, setNewCollectionName] = useState('')
 
   useEffect(() => {
     // Fetch collections from the API
@@ -21,8 +24,28 @@ const Collections: React.FC = () => {
   }, [dispatch])
 
   // Function to delete a collection
-  const handleDelete = (uuid: string) => {
-    // dispatch(deleteCollection(uuid))
+  const handleDelete = async (collectionUuid: string) => {
+    try {
+      await dispatch(deleteCollection(collectionUuid))
+      toastRef.current?.addToast('Collection deleted successfully!', 'success')
+    } catch (error) {
+      console.error(error)
+      toastRef.current?.addToast('Error deleting the collection.', 'error')
+    }
+  }
+
+  // Function to create a new collection
+  const handleCreateCollection = async () => {
+    if (newCollectionName.trim()) {
+      try {
+        await dispatch(createCollection(newCollectionName.trim()))
+        setNewCollectionName('')
+        toastRef.current?.addToast(`Collection "${newCollectionName}" created successfully!`, 'success')
+      } catch (error) {
+        console.error(error)
+        toastRef.current?.addToast('Error creating the collection.', 'error')
+      }
+    }
   }
 
   // Filter collections based on search term
@@ -47,18 +70,40 @@ const Collections: React.FC = () => {
     <div className="min-h-screen bg-dark text-white p-8 pt-40">
       <SectionTitle titleText="Your Collections" subtitleText="Explore and manage your collections" titleTag="h1"/>
 
-      {/* Search input */}
-      <div className="relative w-full mx-auto mb-10 mt-20">
-        <div className="relative flex items-center">
-          <MagnifyingGlass size={24} className="absolute left-4 text-dark"/>
+      {/* Flex container for search and new collection input */}
+      <div className="relative w-full mx-auto mb-10 mt-20 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        {/* Search input */}
+        <div className="relative w-full lg:w-1/2">
+          <div className="relative flex items-center">
+            <MagnifyingGlass size={24} className="absolute left-4 text-dark"/>
+            <input
+              type="text"
+              placeholder="Search collections..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 text-lg border rounded-lg font-sans bg-white text-dark focus:outline-none focus:ring-2 focus:ring-accent border-gray-300"
+              aria-label="Search collections"
+            />
+          </div>
+        </div>
+
+        {/* New collection input and button */}
+        <div className="relative w-full lg:w-1/2 flex items-center">
           <input
             type="text"
-            placeholder="Search collections..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-4 text-lg border rounded-lg font-sans bg-white text-dark focus:outline-none focus:ring-2 focus:ring-accent border-gray-300"
-            aria-label="Search collections"
+            placeholder="New collection name"
+            value={newCollectionName}
+            onChange={(e) => setNewCollectionName(e.target.value)}
+            className="w-full pl-4 pr-4 py-4 text-lg border rounded-lg font-sans bg-white text-dark focus:outline-none focus:ring-2 focus:ring-accent border-gray-300"
+            aria-label="New collection name"
           />
+          <button
+            onClick={handleCreateCollection}
+            className="w-fit pl-4 pr-4 py-2 flex items-center bg-accent text-white rounded-lg hover:bg-accent-dark transition ml-2"
+          >
+            <PlusCircle size={40} className="mr-2"/>
+            Create Collection
+          </button>
         </div>
       </div>
 
@@ -100,6 +145,9 @@ const Collections: React.FC = () => {
           <p className="text-gray-500">No collections found.</p>
         )}
       </div>
+
+      {/* Toast Container for managing toasts */}
+      <ToastContainer ref={toastRef}/>
     </div>
   )
 }

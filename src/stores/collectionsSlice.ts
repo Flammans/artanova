@@ -10,6 +10,7 @@ interface CollectionsState {
 interface Collection {
   id: number
   uuid: string
+  userId: number
   title: string
 }
 
@@ -60,13 +61,13 @@ export function createCollection (title: string) {
         },
       }
     )
-    dispatch(fetchCollections()) // Fetch collections after creation
+    await dispatch(fetchCollections()) // Fetch collections after creation
   }
 }
 
 // Add artwork to collection action creator
 export function addArtworkToCollection (collectionUuid: string, artworkId: number) {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
+  return async (_dispatch: AppDispatch, getState: () => RootState) => {
     const { token } = getState().user // Get user token from state
     await api.post(
       `/collections/${collectionUuid}`,
@@ -77,5 +78,18 @@ export function addArtworkToCollection (collectionUuid: string, artworkId: numbe
         },
       }
     )
+  }
+}
+
+// Delete collection action creator
+export function deleteCollection (collectionUuid: string) {
+  return async (dispatch: AppDispatch, getState: () => RootState) => {
+    const { token } = getState().user // Get user token from state
+    await api.delete(`/collections/${collectionUuid}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    await dispatch(fetchCollections()) // Fetch collections after deletion
   }
 }
