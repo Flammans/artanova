@@ -39,7 +39,7 @@ const SortAndFilter: React.FC<SortAndFilterProps> = ({ sortField, onSortChange }
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="
-          w-full px-4 py-2 bg-accent text-dark font-bold text-lg
+          w-full px-4 py-2 bg-accent text-dark text-lg
           rounded-lg border-2 border-accent hover:bg-primary hover:text-accent
           transition-colors duration-300 ease-in-out focus:outline-none
           focus:ring-2 focus:ring-accent focus:ring-offset-2 flex items-center justify-between
