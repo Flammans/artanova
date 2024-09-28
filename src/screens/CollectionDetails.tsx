@@ -1,58 +1,129 @@
-import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import React, { useEffect, useState, useRef } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import SectionTitle from '../components/SectionTitle'
-import { motion } from 'framer-motion'
 import ShareButton from '../components/ShareButton'
-import { api } from '../utils/api.ts'
-import Collection from '../types/collection.ts'
+import ArtworkGrid from '../components/ArtworkGrid'
+import ArtworkModal from '../components/ArtworkModal'
+import { api } from '../utils/api'
+import Collection from '../types/collection'
+import Loader from '../components/Loader'
+import { Trash } from 'phosphor-react'
+import ToastContainer from '../components/ToastContainer'
+import NotFound from './NotFound.tsx'
+import { deleteCollection } from '../stores/collectionsSlice.ts'
+import { useAppDispatch } from '../stores/hooks.ts'
 
 const CollectionDetails: React.FC = () => {
   const { uuid } = useParams<{ uuid: string }>() // Get collection UUID from URL
+  const dispatch = useAppDispatch()
+  const navigate = useNavigate() // For redirecting after collection deletion
   const [collection, setCollection] = useState<Collection | null>(null)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedArtworkIndex, setSelectedArtworkIndex] = useState<number | null>(null)
+  const toastRef = useRef<{ addToast: (message: string, type: 'success' | 'error') => void } | null>(null) // Ref for managing toasts
 
   useEffect(() => {
     const fetchCollection = async () => {
+      setIsLoading(true)
       try {
         const response = await api.get(`/collections/${uuid}`)
         setCollection(response.data)
+        setError(null)
       } catch (error) {
         console.error('Error fetching collection:', error)
+        setError('Failed to load collection')
+      } finally {
+        setIsLoading(false)
       }
     }
 
     fetchCollection()
   }, [uuid])
 
-  if (!collection) {
-    return <div className="text-white">Collection not found.</div>
+  // Function to handle deleting the collection
+  const handleDeleteCollection = async (collectionUuid: string) => {
+    try {
+      await dispatch(deleteCollection(collectionUuid))
+      toastRef.current?.addToast('Collection deleted successfully!', 'success')
+      navigate('/collections') // Redirect to collections page after deletion is successful
+    } catch (error) {
+      console.error(error)
+      toastRef.current?.addToast('Error deleting the collection.', 'error')
+    }
+  }
+
+  if (isLoading) {
+    return <Loader/>
+  }
+
+  if (error || !collection) {
+    return <NotFound/>
+  }
+
+  const handleCloseModal = () => {
+    setSelectedArtworkIndex(null)
+  }
+
+  const handlePrevArtwork = () => {
+    if (selectedArtworkIndex !== null && selectedArtworkIndex > 0) {
+      setSelectedArtworkIndex(selectedArtworkIndex - 1)
+    }
+  }
+
+  const handleNextArtwork = () => {
+    if (selectedArtworkIndex !== null && selectedArtworkIndex < collection.elements.length - 1) {
+      setSelectedArtworkIndex(selectedArtworkIndex + 1)
+    }
   }
 
   return (
     <div className="min-h-screen bg-dark text-white p-8 pt-40">
-      <SectionTitle titleText={collection.title} subtitleText="Explore the artworks in this collection" titleTag="h2"/>
+      {/* Section title */}
+      <SectionTitle
+        titleText={collection.title}
+        subtitleText="Explore the artworks in this collection"
+        titleTag="h2"
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-        {collection.elements.map((element) => (
-          <motion.div
-            key={element.id}
-            className="bg-secondary p-4 rounded-lg shadow-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <img
-              src={element.artwork.preview}
-              alt={element.artwork.title}
-              className="rounded-lg object-cover w-full h-48"
-            />
-            <h3 className="text-xl font-semibold mt-4">{element.artwork.title}</h3>
-            <p className="mt-2 text-gray-700">{element.artwork.origin}</p>
-          </motion.div>
-        ))}
+      {/* Share Button aligned to the right */}
+      <div className="flex justify-end mt-4">
+        <ShareButton shareUrl={`${window.location.origin}/collections/${uuid}`}/>
       </div>
 
-      {/* Use ShareButton component */}
-      <ShareButton shareUrl={`${window.location.origin}/collections/${uuid}`}/>
+      {/* Artwork grid */}
+      <ArtworkGrid
+        artworks={collection.elements.map((element) => element.artwork)} // Map collection elements to artworks
+        onViewArtwork={setSelectedArtworkIndex} // Handle artwork selection for the modal
+        isInCollectionPage={true} // Indicate that this is a collection page
+      />
+
+      {/* Modal for artwork details */}
+      {selectedArtworkIndex !== null && (
+        <ArtworkModal
+          artwork={collection.elements[selectedArtworkIndex].artwork}
+          artworks={collection.elements.map((element) => element.artwork)}
+          currentIndex={selectedArtworkIndex}
+          onClose={handleCloseModal}
+          onPrev={handlePrevArtwork}
+          onNext={handleNextArtwork}
+        />
+      )}
+
+      {/* Delete collection button */}
+      <div className="flex justify-center mt-10">
+        <button
+          onClick={() => handleDeleteCollection(collection.uuid)}
+          className="bg-red-600 text-white px-6 py-3 rounded-lg flex items-center space-x-2 hover:bg-red-700 transition duration-300 ease-in-out"
+          aria-label="Delete collection"
+        >
+          <Trash size={24}/>
+          <span>Delete Collection</span>
+        </button>
+      </div>
+
+      {/* Toast Container for managing toasts */}
+      <ToastContainer ref={toastRef}/>
     </div>
   )
 }

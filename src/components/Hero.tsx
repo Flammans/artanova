@@ -1,10 +1,10 @@
-import React from 'react';
-import ScrollArrow from './ScrollArrow.tsx';
-import ActionButton from './ActionButton.tsx';
-import ParallaxImage from './ParallaxImage.tsx';
-import FeatureSlider from './FeatureSlider.tsx';
-import SectionTitle from './SectionTitle.tsx';
-import { Palette, ShareNetwork, Users, Archive } from '@phosphor-icons/react';
+import React from 'react'
+import ScrollArrow from './ScrollArrow.tsx'
+import ActionButton from './ActionButton.tsx'
+import ParallaxImage from './ParallaxImage.tsx'
+import FeatureSlider from './FeatureSlider.tsx'
+import SectionTitle from './SectionTitle.tsx'
+import { Palette, ShareNetwork, Users, Archive } from '@phosphor-icons/react'
 
 const slideData = [
   {
@@ -31,7 +31,7 @@ const slideData = [
     description: 'Explore a wide range of artworks from museums, universities, and private collections.',
     iconColor: '#708090',
   },
-];
+]
 
 const Hero: React.FC = () => {
   return (
@@ -53,15 +53,15 @@ const Hero: React.FC = () => {
         />
 
         {/* Feature Slider */}
-        <FeatureSlider slides={slideData} animationType="fade" />
+        <FeatureSlider slides={slideData} animationType="fade"/>
 
-        <ActionButton text="Explore Collections" to="/explore-collections" />
+        <ActionButton text="Explore Collections" to="/" targetId="explore-section"/>
 
         {/* Down arrow to scroll to the next section */}
-        <ScrollArrow targetId="explore-section" tooltipText="Explore Collections" />
+        <ScrollArrow targetId="explore-section" tooltipText="Explore Collections"/>
       </section>
     </>
-  );
-};
+  )
+}
 
-export default Hero;
+export default Hero

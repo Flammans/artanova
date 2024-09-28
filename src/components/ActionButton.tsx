@@ -1,18 +1,42 @@
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useLocation, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { scroller } from 'react-scroll'
 
 interface ActionButtonProps {
   text: string;       // The text to display on the button
-  to: string;         // The path to navigate to when the button is clicked
+  to: string;         // The path to navigate to
+  targetId?: string;  // Optional: The ID of the section to scroll to
 }
 
-const ActionButton: React.FC<ActionButtonProps> = ({ text, to }) => {
-  const navigate = useNavigate();
+const ActionButton: React.FC<ActionButtonProps> = ({ text, to, targetId }) => {
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  // Handle button click to navigate to the specified path
+  // Function to handle the navigation or scrolling
   const handleClick = () => {
-    navigate(to);
-  };
+    if (location.pathname === '/' && targetId) {
+      // If already on the homepage, scroll to the target section
+      scroller.scrollTo(targetId, {
+        smooth: true,
+        duration: 600,
+        offset: -50,  // Offset for fixed header, if needed
+      })
+    } else {
+      // If not on the homepage, navigate to the homepage and scroll to the target
+      navigate(to)
+
+      // After navigation, scroll to the target section on the new page
+      if (targetId) {
+        setTimeout(() => {
+          scroller.scrollTo(targetId, {
+            smooth: true,
+            duration: 600,
+            offset: -50,
+          })
+        }, 100) // Delay to ensure the page has loaded
+      }
+    }
+  }
 
   return (
     <motion.button
@@ -29,7 +53,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({ text, to }) => {
     >
       {text}
     </motion.button>
-  );
-};
+  )
+}
 
-export default ActionButton;
+export default ActionButton
