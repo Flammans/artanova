@@ -47,6 +47,10 @@ maintainable, and easy to scale.
 
 ## How to run
 
+You can view the live version of the project at **[Artanova](https://artanova.onrender.com/)**.
+
+For local development:
+
 1. Run the backend API server by following the instructions in the [Exhibition Curator Project API](https://github.com/Flammans/artanova-api) repository.
 
 2. Install requirements:
