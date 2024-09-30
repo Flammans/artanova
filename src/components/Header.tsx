@@ -66,7 +66,7 @@ const Header: React.FC = () => {
       </nav>
 
       {/* User Menu or Authentication Buttons */}
-      <div className="relative ml-4">
+      <div className="relative ml-auto lg:ml-4">
         <div className="lg:flex items-center">
           <button onClick={toggleUserMenu} aria-label="Open user menu" className="flex items-center focus:outline-none">
             <UserCircle size={32} className="hover:text-accent focus:text-accent"/>
