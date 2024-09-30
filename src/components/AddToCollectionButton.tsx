@@ -1,12 +1,21 @@
 import { useState } from 'react'
 import { Plus } from 'phosphor-react'
 import AddToCollectionModal from './AddToCollectionModal.tsx'
+import { useAppSelector } from '../stores/hooks.ts'
+import { useNavigate } from 'react-router-dom'
 
 const AddToCollectionButton: React.FC<{ artworkId: number }> = ({ artworkId }) => {
   const [isModalOpen, setModalOpen] = useState(false)
+  const user = useAppSelector((state) => state.user)
+  const navigate = useNavigate()
 
   const handleOpenModal = () => {
-    setModalOpen(true)
+    console.log(user.token)
+    if (user.token) {
+      setModalOpen(true)
+    } else {
+      navigate('/login')
+    }
   }
 
   const handleCloseModal = () => {

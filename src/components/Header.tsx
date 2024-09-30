@@ -1,27 +1,21 @@
 import React, { useState } from 'react'
-import { List, X, MagnifyingGlass, User, SignOut, UserCircle, Star } from 'phosphor-react'
+import { List, X, User, SignOut, UserCircle, Star } from 'phosphor-react'
 import { motion } from 'framer-motion'
-import { useNavigate, useLocation, Link } from 'react-router-dom' // Added useLocation
+import { useNavigate, Link } from 'react-router-dom'
 import Logo from './Logo'
 import { useAppDispatch, useAppSelector } from '../stores/hooks.ts'
 import { clearUser } from '../stores/userSlice.ts'
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
-  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false)
-  const [searchQuery, setSearchQuery] = useState<string>('') // Search query state
   const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false)
 
   const dispatch = useAppDispatch()
   const user = useAppSelector((state) => state.user)
   const navigate = useNavigate()
-  const location = useLocation() // Get current location
 
   // Toggle mobile menu
   const toggleMenu = (): void => setIsMenuOpen(!isMenuOpen)
-
-  // Toggle search input visibility
-  const toggleSearch = (): void => setIsSearchOpen(!isSearchOpen)
 
   // Toggle user menu (either Sign In/Sign Up or User Profile)
   const toggleUserMenu = (): void => setIsUserMenuOpen(!isUserMenuOpen)
@@ -55,25 +49,6 @@ const Header: React.FC = () => {
     }, 0)
   }
 
-  // Handle search input submission
-  const handleSearchSubmit = () => {
-    if (location.pathname !== '/') {
-      // If not on the main page, navigate to the main page first
-      navigate('/')
-    }
-    // Scroll to explore section after navigating or if already on the main page
-    setTimeout(() => {
-      const exploreSection = document.getElementById('explore-section')
-      if (exploreSection) {
-        exploreSection.scrollIntoView({ behavior: 'smooth' })
-      }
-    }, 0)
-
-    // Pass the search query to the Explore component (via URL query or context)
-    navigate(`/explore-collections?search=${searchQuery}`)
-    setIsSearchOpen(false)
-  }
-
   return (
     <header className="fixed top-0 left-0 right-0 bg-primary text-secondary p-4 flex justify-between items-center shadow-lg border-b-2 border-accent z-50">
       {/* Logo Component with adjustable size */}
@@ -89,31 +64,6 @@ const Header: React.FC = () => {
           </li>
         </ul>
       </nav>
-
-      {/* Search Button */}
-      <button onClick={toggleSearch} aria-label="Open search" className="lg:ml-10 ml-auto focus:outline-none">
-        <MagnifyingGlass size={32} className="hover:text-accent focus:text-accent"/>
-      </button>
-
-      {/* Search Input (appears when button is clicked) */}
-      {isSearchOpen && (
-        <motion.div
-          className="absolute top-full left-0 w-full bg-primary text-secondary p-2 border-b-2 border-accent focus:outline-none z-20 flex items-center"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <MagnifyingGlass size={24} className="text-white ml-2"/>
-          <input
-            type="text"
-            placeholder="Search artworks..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-4 pr-4 py-4 text-lg border-none bg-primary text-white focus:outline-none"
-            onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()} // Handle search on Enter
-          />
-        </motion.div>
-      )}
 
       {/* User Menu or Authentication Buttons */}
       <div className="relative ml-4">
