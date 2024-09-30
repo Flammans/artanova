@@ -47,35 +47,35 @@ maintainable, and easy to scale.
 
 ## How to run
 
-1. Install requirements:
+1. Run the backend API server by following the instructions in the [Exhibition Curator Project API](https://github.com/Flammans/artanova-api) repository.
+
+2. Install requirements:
     - Node.js v21
 
-2. Clone the repository:
+3. Clone the repository:
     ```sh
     git clone https://github.com/Flammans/artanova.git
     cd artanova
     ```
 
-3. Install dependencies:
+4. Install dependencies:
     ```sh
     npm install
     ```
 
-4. Set up environment variables:
+5. Set up environment variables:
     - Create a `.env` file in the root of the project with the following variables:
       ```sh
       VITE_API_URL=<backend-api-url> # URL for the backend API
-      VITE_API_KEY=<your-api-key>    # Optional: If your project requires an API key for third-party services
-      VITE_PORT=<frontend-port>      # Optional: If you want to specify a different port for the frontend
       ```
     - Replace the placeholders with actual values as needed for your environment.
 
-5. Start the development server:
+6. Start the development server:
     ```sh
     npm run dev
     ```
 
-6. Open your browser and navigate to the link provided in the terminal.
+7. Open your browser and navigate to the link provided in the terminal.
 
 ## Accessibility
 
