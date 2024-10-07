@@ -1,4 +1,10 @@
-# Artanova
+# Artanova backend
+
+See https://github.com/Flammans/artanova-api
+
+# Artanova frontend
+
+You can view the live version of the project at **[artanova.onrender.com](https://artanova.onrender.com/)**.
 
 ## Description
 
@@ -47,11 +53,9 @@ maintainable, and easy to scale.
 
 ## How to run
 
-You can view the live version of the project at **[Artanova](https://artanova.onrender.com/)**.
-
 For local development:
 
-1. Run the backend API server by following the instructions in the [Exhibition Curator Project API](https://github.com/Flammans/artanova-api) repository.
+1. Run the backend API server by following the instructions in [the backend repository](https://github.com/Flammans/artanova-api).
 
 2. Install requirements:
     - Node.js v21
