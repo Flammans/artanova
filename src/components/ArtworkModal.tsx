@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback, MouseEvent, WheelEvent } from 'react'
+import React, { useRef, useState, useEffect, useCallback, MouseEvent } from 'react'
 import { X, CaretLeft, CaretRight } from 'phosphor-react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import 'swiper/css'
@@ -32,14 +32,8 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({
 }) => {
   const modalRef = useRef<HTMLDivElement>(null)
   const [isImageLoading, setIsImageLoading] = useState<boolean[]>(Array(artwork.images.length).fill(true))
-  const [zoomLevel, setZoomLevel] = useState<number>(8)
-  const [isZoomActive, setIsZoomActive] = useState<boolean>(true)
-  const [cursorPos, setCursorPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
-  const [imageSize, setImageSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 })
-  const [isLensVisible, setIsLensVisible] = useState<boolean>(false)
   const [animationKey, setAnimationKey] = useState<number>(0)
   const [thumbsSwiper, setThumbsSwiper] = useState<any>(null)
-  const zoomLensSize = 250 // Lens size for zoom effect
 
   // Disable scrolling on the main page when the modal is open
   useEffect(() => {
@@ -54,8 +48,6 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({
     (e: KeyboardEvent): void => {
       if (e.key === 'Escape') {
         onClose()
-      } else if (e.key === 'Control') {
-        setIsZoomActive((prevState) => !prevState) // Toggle zoom on/off
       } else if (e.key === 'ArrowLeft') {
         onPrev()
       } else if (e.key === 'ArrowRight') {
@@ -65,7 +57,7 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({
     [onClose, onPrev, onNext]
   )
 
-  // Add event listener for keyboard navigation and clean up on unmount
+  // Add event listener for keyboard navigation and clean up on unmounting
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
     return () => {
@@ -80,13 +72,8 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({
   }, [currentIndex, artwork.images.length])
 
   // Handle image loading to disable loader for the loaded image
-  const handleImageLoad = (index: number, e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    // Check if e.currentTarget is defined
-    const currentTarget = e.currentTarget as HTMLImageElement | undefined
-    const width = currentTarget?.naturalWidth || 500
-    const height = currentTarget?.naturalHeight || 500
+  const handleImageLoad = (index: number) => {
 
-    setImageSize({ width, height })
     setIsImageLoading((prev) => {
       const newLoadingState = [...prev]
       newLoadingState[index] = false // Disable loader for the loaded image
@@ -99,29 +86,6 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
       onClose()
     }
-  }
-
-  // Handle mouse wheel scroll to zoom in and out (Shift key must be held)
-  const handleWheel = (e: WheelEvent<HTMLDivElement>) => {
-    if (isZoomActive) {
-      e.preventDefault()
-      setZoomLevel((prevZoom) => Math.max(8, Math.max(2, prevZoom + (e.deltaY > 0 ? -1 : 1)))) // Adjust zoom level
-    }
-  }
-
-  // Handle mouse move to update the position of the zoom lens
-  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    const rect = (e.target as HTMLDivElement).getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-
-    setCursorPos({ x, y })
-    setIsLensVisible(true)
-  }
-
-  // Hide the zoom lens when the mouse leaves the image
-  const handleMouseLeave = () => {
-    setIsLensVisible(false)
   }
 
   return (
@@ -140,7 +104,7 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-          onWheel={handleWheel}
+          // onWheel={handleWheel}
           style={{ maxHeight: 'calc(100vh - 100px)' }}
         >
           {/* Close Button */}
@@ -177,9 +141,9 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({
               style={{ width: '100%' }} // Ensure slider is always full width
             >
               {artwork.images.map((image: string, index: number) => (
-                <SwiperSlide key={index} style={{ width: '100%', minWidth: '100%' }}> {/* Ensures slide takes 100% width */}
+                <SwiperSlide key={index} style={{ width: '100%', minWidth: '100%' }}> {/* Ensures the slide takes 100% width */}
                   <div className="relative flex bg-accent bg-opacity-20" style={{ minHeight: '500px' }}>
-                    {/* Show loader while image is loading */}
+                    {/* Show loader while the image is loading */}
                     {isImageLoading[index] && (
                       <div className="absolute inset-0 flex justify-center items-center bg-dark">
                         <Loader/>
@@ -194,32 +158,15 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({
                       style={{
                         opacity: isImageLoading[index] ? 0 : 1, // Use opacity to hide image until it's loaded
                       }}
-                      onLoad={(e) => handleImageLoad(index, e)}
-                      onMouseMove={handleMouseMove}
-                      onMouseLeave={handleMouseLeave}
+                      onLoad={() => handleImageLoad(index)}
                     />
 
-                    {/* Zoom lens simulation */}
-                    {isZoomActive && isLensVisible && !isImageLoading[index] && (
-                      <div
-                        className="absolute rounded-full border border-accent pointer-events-none"
-                        style={{
-                          width: `${zoomLensSize}px`,
-                          height: `${zoomLensSize}px`,
-                          top: cursorPos.y - zoomLensSize / 2,
-                          left: cursorPos.x - zoomLensSize / 2,
-                          backgroundImage: `url(${image})`,
-                          backgroundPosition: `${(cursorPos.x / imageSize.width) * 100}% ${(cursorPos.y / imageSize.height) * 100}%`,
-                          backgroundSize: `${zoomLevel * 100}%`,
-                        }}
-                      />
-                    )}
                   </div>
                 </SwiperSlide>
               ))}
             </Swiper>
 
-            {/* Conditionally render Thumbnails Swiper */}
+            {/* Conditionally render Thumbnail Swiper */}
             {artwork.images.length > 1 && (
               <Swiper
                 onSwiper={setThumbsSwiper}
@@ -246,18 +193,13 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({
                         style={{
                           opacity: isImageLoading[index] ? 0 : 1, // Use opacity for thumbnail as well
                         }}
-                        onLoad={() => handleImageLoad(index, {} as React.SyntheticEvent<HTMLImageElement, Event>)} // Ensure thumbnail also hides loader when loaded
+                        onLoad={() => handleImageLoad(index)} // Ensure thumbnail also hides loader when loaded
                       />
                     </div>
                   </SwiperSlide>
                 ))}
               </Swiper>
             )}
-          </div>
-
-          {/* Zoom hint */}
-          <div className="mt-4 text-sm text-white bg-black bg-opacity-50 px-2 py-1 rounded-lg">
-            You can toggle zoom by pressing <strong>Ctrl</strong>. Use the <strong>mouse wheel</strong> to zoom in and out.
           </div>
 
           {/* Artwork Details with animation */}
