@@ -1,20 +1,23 @@
-import React, { useEffect, useState, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import React, {useEffect, useState, useRef} from 'react'
+import {useParams, useNavigate} from 'react-router-dom'
 import SectionTitle from '../components/SectionTitle'
 import ShareButton from '../components/ShareButton'
 import ArtworkGrid from '../components/ArtworkGrid'
 import ArtworkModal from '../components/ArtworkModal'
-import { api } from '../utils/api'
+import {api} from '../utils/api'
 import Collection from '../types/collection'
 import Loader from '../components/Loader'
-import { Trash } from 'phosphor-react'
+import {Trash} from 'phosphor-react'
 import ToastContainer from '../components/ToastContainer'
 import NotFound from './NotFound.tsx'
-import { deleteCollection } from '../stores/collectionsSlice.ts'
-import { useAppDispatch } from '../stores/hooks.ts'
+import {deleteCollection} from '../stores/collectionsSlice.ts'
+import {useAppDispatch, useAppSelector} from '../stores/hooks.ts'
 
 const CollectionDetails: React.FC = () => {
-  const { uuid } = useParams<{ uuid: string }>() // Get collection UUID from URL
+
+  const userId = useAppSelector((state) => state.user.id)
+
+  const {uuid} = useParams<{ uuid: string }>() // Get collection UUID from URL
   const dispatch = useAppDispatch()
   const navigate = useNavigate() // For redirecting after collection deletion
   const [collection, setCollection] = useState<Collection | null>(null)
@@ -95,7 +98,7 @@ const CollectionDetails: React.FC = () => {
       <ArtworkGrid
         artworks={collection.elements.map((element) => element.artwork)} // Map collection elements to artworks
         onViewArtwork={setSelectedArtworkIndex} // Handle artwork selection for the modal
-        isInCollectionPage={true} // Indicate that this is a collection page
+        isInCollectionPage={collection.userId === userId} // Indicate that this is a collection page
         collectionUuid={uuid} // Pass collection UUID to the grid
         fetchCollection={fetchCollection} // Refetch collection after deleting an artwork
       />
@@ -113,16 +116,18 @@ const CollectionDetails: React.FC = () => {
       )}
 
       {/* Delete collection button */}
-      <div className="flex justify-center mt-10">
-        <button
-          onClick={() => handleDeleteCollection(collection.uuid)}
-          className="bg-red-600 text-white px-6 py-3 rounded-lg flex items-center space-x-2 hover:bg-red-700 transition duration-300 ease-in-out"
-          aria-label="Delete collection"
-        >
-          <Trash size={24}/>
-          <span>Delete Collection</span>
-        </button>
-      </div>
+      {collection.userId === userId && (
+        <div className="flex justify-center mt-10">
+          <button
+            onClick={() => handleDeleteCollection(collection.uuid)}
+            className="bg-red-600 text-white px-6 py-3 rounded-lg flex items-center space-x-2 hover:bg-red-700 transition duration-300 ease-in-out"
+            aria-label="Delete collection"
+          >
+            <Trash size={24}/>
+            <span>Delete Collection</span>
+          </button>
+        </div>
+      )}
 
       {/* Toast Container for managing toasts */}
       <ToastContainer ref={toastRef}/>
