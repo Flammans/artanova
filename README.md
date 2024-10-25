@@ -1,6 +1,6 @@
-# Artanova backend
+# Artanova Backend
 
-See https://github.com/Flammans/artanova-api
+See [Artanova API repository](https://github.com/Flammans/artanova-api) for details about the backend that provides the artwork data to this project.
 
 # Artanova frontend
 
@@ -84,6 +84,15 @@ For local development:
     ```
 
 7. Open your browser and navigate to the link provided in the terminal.
+
+## Test Account
+
+To facilitate testing, a test account is available. This allows access to features that require a user account without the need for manual sign-up.
+
+- **Email:** testuser@artanova.co.uk
+- **Password:** TestPassword123!
+
+Using this account, you can test features such as saving, managing, and sharing collections.
 
 ## Accessibility
 
