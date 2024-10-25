@@ -218,7 +218,7 @@ const ArtworkModal: React.FC<ArtworkModalProps> = ({
           </motion.div>
 
           {/* Buttons */}
-          <motion.div className="flex space-x-4 mt-6">
+          <motion.div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 mt-6">
             <DetailsButton
               onClick={() => window.open(artwork.url, '_blank')}
               text="Visit Source Website"
