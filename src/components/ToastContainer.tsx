@@ -1,5 +1,5 @@
-import { useState, forwardRef, useImperativeHandle } from 'react'
-import { AnimatePresence } from 'framer-motion'
+import {useState, forwardRef, useImperativeHandle} from 'react'
+import {AnimatePresence} from 'framer-motion'
 import Toast from './Toast'
 
 interface ToastData {
@@ -17,7 +17,7 @@ const ToastContainer = forwardRef<ToastContainerHandles>((_props, ref) => {
 
   // Function to add a new toast
   const addToast = (message: string, type: 'success' | 'error') => {
-    const newToast = { id: Date.now(), message, type }
+    const newToast = {id: Date.now(), message, type}
     setToasts((prevToasts) => [...prevToasts, newToast])
   }
 
@@ -35,7 +35,7 @@ const ToastContainer = forwardRef<ToastContainerHandles>((_props, ref) => {
     <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end space-y-4">
       <AnimatePresence>
         {toasts.map((toast) => (
-          <Toast key={toast.id} {...toast} onClose={() => removeToast(toast.id)}/>
+          <Toast key={toast.id} {...toast} removeToast={() => removeToast(toast.id)}/>
         ))}
       </AnimatePresence>
     </div>

@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { X, CheckCircle, WarningCircle } from 'phosphor-react'
+import {useEffect, useState} from 'react'
+import {motion} from 'framer-motion'
+import {X, CheckCircle, WarningCircle} from 'phosphor-react'
 
 interface ToastProps {
   id: number;
   message: string;
   type: 'success' | 'error';
-  onClose: () => void;
+  removeToast: () => void;
 }
 
-const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
+const Toast: React.FC<ToastProps> = ({message, type, removeToast}) => {
   const [progress, setProgress] = useState(100)
 
   useEffect(() => {
@@ -20,14 +20,14 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
 
     // Automatically close the toast after 5 seconds
     const timeout = setTimeout(() => {
-      onClose()
+      removeToast()
     }, 5000)
 
     return () => {
       clearInterval(interval)
       clearTimeout(timeout)
     }
-  }, [onClose])
+  }, [])
 
   const progressBarWidth = `${progress}%`
 
@@ -35,9 +35,9 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
     <motion.div
       className={`relative flex items-start p-4 rounded-lg shadow-lg w-80 mb-4 text-white 
         ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}
-      initial={{ opacity: 0, x: 50 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 50 }}
+      initial={{opacity: 0, x: 50}}
+      animate={{opacity: 1, x: 0}}
+      exit={{opacity: 0, x: 50}}
     >
       <div className="mr-3">
         {type === 'success' ? (
@@ -51,13 +51,13 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
         <div className="w-full h-1 bg-white bg-opacity-20 mt-2 rounded">
           <div
             className="h-full bg-white transition-width ease-linear"
-            style={{ width: progressBarWidth }}
+            style={{width: progressBarWidth}}
           />
         </div>
       </div>
       <button
         className="absolute top-2 right-2 text-white"
-        onClick={onClose}
+        onClick={removeToast}
         aria-label="Close"
       >
         <X size={24}/>

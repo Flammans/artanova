@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { X, PlusCircle, Sparkle, CaretDown, CaretUp } from 'phosphor-react'
-import { useAppDispatch, useAppSelector } from '../stores/hooks'
-import { addArtworkToCollection, createCollection } from '../stores/collectionsSlice'
+import {useState, useRef, useEffect} from 'react'
+import {motion} from 'framer-motion'
+import {X, PlusCircle, Sparkle, CaretDown, CaretUp} from 'phosphor-react'
+import {useAppDispatch, useAppSelector} from '../stores/hooks'
+import {addArtworkToCollection, createCollection} from '../stores/collectionsSlice'
 import ToastContainer from './ToastContainer'
 
 interface AddToCollectionModalProps {
@@ -10,7 +10,7 @@ interface AddToCollectionModalProps {
   onClose: () => void;
 }
 
-const AddToCollectionModal: React.FC<AddToCollectionModalProps> = ({ artworkId, onClose }) => {
+const AddToCollectionModal: React.FC<AddToCollectionModalProps> = ({artworkId, onClose}) => {
   const dispatch = useAppDispatch()
   const collections = useAppSelector((state) => state.collections.collections)
 
@@ -21,11 +21,6 @@ const AddToCollectionModal: React.FC<AddToCollectionModalProps> = ({ artworkId, 
   const [isDropdownOpen, setDropdownOpen] = useState(false)
 
   const toastRef = useRef<{ addToast: (message: string, type: 'success' | 'error') => void } | null>(null)
-
-  // Fetch collections on mount
-  // useEffect(() => {
-  //   dispatch(loadCollections())
-  // }, [dispatch])
 
   // Update filtered collections based on search input
   useEffect(() => {
@@ -74,15 +69,15 @@ const AddToCollectionModal: React.FC<AddToCollectionModalProps> = ({ artworkId, 
     <>
       <motion.div
         className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 ml-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        initial={{opacity: 0}}
+        animate={{opacity: 1}}
+        exit={{opacity: 0}}
       >
         <motion.div
           className="bg-dark p-8 rounded-lg shadow-lg max-w-lg w-full relative"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
+          initial={{opacity: 0, y: -20}}
+          animate={{opacity: 1, y: 0}}
+          exit={{opacity: 0, y: 20}}
         >
           {/* Close button */}
           <button
@@ -97,7 +92,7 @@ const AddToCollectionModal: React.FC<AddToCollectionModalProps> = ({ artworkId, 
           <div className="flex justify-center mb-6">
             <motion.div
               className="text-accent"
-              animate={{ rotate: [0, 20, -20, 0], transition: { repeat: Infinity, duration: 2 } }}
+              animate={{rotate: [0, 20, -20, 0], transition: {repeat: Infinity, duration: 2}}}
             >
               <Sparkle size={64} weight="fill"/>
             </motion.div>
@@ -132,7 +127,8 @@ const AddToCollectionModal: React.FC<AddToCollectionModalProps> = ({ artworkId, 
 
             {/* Dropdown list */}
             {isDropdownOpen && (
-              <ul className="absolute z-10 mt-2 max-h-40 w-full overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-lg">
+              <ul
+                className="absolute z-10 mt-2 max-h-40 w-full overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-lg">
                 {filteredCollections.length > 0 ? (
                   filteredCollections.map((collection) => (
                     <li
